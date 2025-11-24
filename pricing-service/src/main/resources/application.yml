@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: pricing-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pricing_db
+    username: destore
+    password: destore123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8082
+
+logging:
+  level:
+    com.destore: DEBUG

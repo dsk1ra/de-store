@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: enabling-simulator
+
+server:
+  port: 9000
+
+logging:
+  level:
+    com.destore: DEBUG

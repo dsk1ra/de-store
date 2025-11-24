@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/notification_db
+    username: destore
+    password: destore123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: destore
+    password: destore123
+
+server:
+  port: 8085
+
+rabbitmq:
+  exchange:
+    low-stock: low_stock_exchange
+    finance-approval: finance_approval_exchange
+  queue:
+    low-stock: low_stock_queue
+    finance-approval: finance_approval_queue
+  routing-key:
+    low-stock: inventory.low_stock
+    finance-approval: finance.approval
+
+logging:
+  level:
+    com.destore: DEBUG

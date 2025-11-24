@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: finance-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/finance_db
+    username: destore
+    password: destore123
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: destore
+    password: destore123
+
+server:
+  port: 8084
+
+enabling:
+  service:
+    url: http://localhost:8086
+
+rabbitmq:
+  exchange:
+    finance-approval: finance_approval_exchange
+  queue:
+    finance-approval: finance_approval_queue
+    pending-approval: pending_approval_queue
+    approval-decision: approval_decision_queue
+  routing-key:
+    finance-approval: finance.approval
+    pending-approval: finance.pending
+    approval-decision: finance.decision
+
+logging:
+  level:
+    com.destore: DEBUG

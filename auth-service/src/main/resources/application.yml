@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/auth_db
+    username: destore
+    password: destore123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: 8081
+
+jwt:
+  secret: MySecretKeyForDEStoreApplicationMustBe256BitsOrLongerForHS256Algorithm
+  expiration: 3600000 # 1 hour in milliseconds
+
+logging:
+  level:
+    com.destore: DEBUG
+    org.springframework.security: DEBUG
