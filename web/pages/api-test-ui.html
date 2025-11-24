@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,7 +68,9 @@
             font-size: 0.9em;
         }
 
-        input, select, textarea {
+        input,
+        select,
+        textarea {
             width: 100%;
             padding: 8px 10px;
             border: 1px solid #ccc;
@@ -75,7 +78,9 @@
             font-family: inherit;
         }
 
-        input:focus, select:focus, textarea:focus {
+        input:focus,
+        select:focus,
+        textarea:focus {
             outline: none;
             border-color: #2c3e50;
         }
@@ -323,8 +328,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .test-all-btn {
@@ -335,6 +345,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -355,7 +366,7 @@
                         <input type="password" id="password" value="Admin123!" placeholder="Enter password">
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="login()">Login</button>
+                <button class="btn btn-primary" onclick="login(event)">Login</button>
                 <button class="btn btn-secondary" onclick="clearToken()">Clear Token</button>
                 <div id="tokenDisplay" class="token-display" style="display:none;">
                     <strong>Access Token:</strong><br>
@@ -363,223 +374,244 @@
                 </div>
             </div>
 
-            <!-- Pricing Service -->
-            <div class="api-section">
-                <h3>Pricing Service</h3>
-                
-                <div class="form-group">
-                    <label>Create Product</label>
-                    <div class="grid-2">
-                        <input type="text" id="productCode" placeholder="Product Code" value="PROD-001">
-                        <input type="text" id="productName" placeholder="Product Name" value="Laptop Computer">
+            <div id="secured-content" style="display:none;">
+                <!-- Pricing Service -->
+                <div class="api-section">
+                    <h3>Pricing Service</h3>
+
+                    <div class="form-group">
+                        <label>Create Product</label>
+                        <div class="grid-2">
+                            <input type="text" id="productCode" placeholder="Product Code" value="">
+                            <input type="text" id="productName" placeholder="Product Name" value="">
+                        </div>
+                        <input type="number" id="basePrice" placeholder="Base Price" value="" style="margin-top:10px">
+                        <button class="btn btn-success" onclick="createProduct(event)">Create Product</button>
+                        <button class="btn btn-secondary" onclick="getProduct(event)">Get Product</button>
+                        <button class="btn btn-secondary" onclick="updateProduct(event)">Update Product</button>
+                        <button class="btn btn-danger" onclick="deleteProduct(event)">Delete Product</button>
                     </div>
-                    <input type="number" id="basePrice" placeholder="Base Price" value="999.99" style="margin-top:10px">
-                    <button class="btn btn-success" onclick="createProduct()">Create Product</button>
-                    <button class="btn btn-secondary" onclick="getProduct()">Get Product</button>
-                    <button class="btn btn-secondary" onclick="updateProduct()">Update Product</button>
-                    <button class="btn btn-danger" onclick="deleteProduct()">Delete Product</button>
-                </div>
 
-                <div class="form-group">
-                    <label>Search Products</label>
-                    <input type="text" id="productSearch" placeholder="Search by name or code" value="">
-                    <button class="btn btn-primary" onclick="searchProducts()">Search</button>
-                </div>
-
-                <div class="form-group">
-                    <label>Create Promotion</label>
-                    <input type="text" id="promoCode" placeholder="Promotion Code" value="BOGO-LAPTOPS">
-                    <input type="text" id="promoName" placeholder="Promotion Name" value="Buy One Get One Free" style="margin-top:10px">
-                    <select id="promoType" style="margin-top:10px">
-                        <option value="BOGO">Buy One Get One (BOGO)</option>
-                        <option value="PERCENTAGE">Percentage Discount</option>
-                        <option value="FIXED">Fixed Amount</option>
-                    </select>
-                    <button class="btn btn-success" onclick="createPromotion()">Create Promotion</button>
-                </div>
-
-                <div class="form-group">
-                    <label>Calculate Price</label>
-                    <div class="grid-2">
-                        <input type="text" id="calcProductCode" placeholder="Product Code" value="PROD-001">
-                        <input type="number" id="calcQuantity" placeholder="Quantity" value="2">
+                    <div class="form-group">
+                        <label>Search Products</label>
+                        <input type="text" id="productSearch" placeholder="Search by name or code" value="">
+                        <button class="btn btn-primary" onclick="searchProducts(event)">Search</button>
                     </div>
-                    <button class="btn btn-primary" onclick="calculatePrice()">Calculate Price</button>
-                </div>
 
-                <div class="response-header" id="pricingResponseHeader" style="display:none;">
-                    <strong>Response:</strong>
-                    <div class="view-toggle">
-                        <button onclick="toggleView('pricingResponse', 'json')" class="active" id="pricingResponse-json-btn">JSON</button>
-                        <button onclick="toggleView('pricingResponse', 'table')" id="pricingResponse-table-btn">Table</button>
+                    <div class="form-group">
+                        <label>Create Promotion</label>
+                        <input type="text" id="promoCode" placeholder="Promotion Code" value="">
+                        <input type="text" id="promoName" placeholder="Promotion Name" value="" style="margin-top:10px">
+                        <input type="text" id="promoApplicableProducts"
+                            placeholder="Applicable Product Codes (comma-separated)" value="" style="margin-top:10px">
+                        <select id="promoType" style="margin-top:10px" onchange="toggleDiscountValue()">
+                            <option value="BOGO">Buy One Get One (BOGO)</option>
+                            <option value="THREE_FOR_TWO">Three for Two</option>
+                            <option value="PERCENTAGE_DISCOUNT">Percentage Discount</option>
+                            <option value="FIXED_AMOUNT">Fixed Amount</option>
+                        </select>
+                        <div id="discountValueContainer" style="margin-top:10px; display:none;">
+                            <input type="number" id="discountValue"
+                                placeholder="Discount Value (e.g. 10 for 10% or 5.00)" value="" step="0.01" min="0">
+                            <small id="discountHint" style="display:block; color:#666; margin-top:5px;"></small>
+                        </div>
+                        <button class="btn btn-success" onclick="createPromotion(event)">Create Promotion</button>
                     </div>
-                </div>
-                <div id="pricingResponse" class="response-area" style="display:none;"></div>
-            </div>
 
-            <!-- Inventory Service -->
-            <div class="api-section">
-                <h3>Inventory Service</h3>
-                
-                <div class="form-group">
-                    <label>Create Inventory</label>
-                    <div class="grid-2">
-                        <input type="text" id="invProductCode" placeholder="Product Code" value="PROD-001">
-                        <input type="number" id="invQuantity" placeholder="Quantity" value="45">
+                    <div class="form-group">
+                        <label>Calculate Price</label>
+                        <div class="grid-2">
+                            <input type="text" id="calcProductCode" placeholder="Product Code" value="">
+                            <input type="number" id="calcQuantity" placeholder="Quantity" value="">
+                        </div>
+                        <button class="btn btn-primary" onclick="calculatePrice(event)">Calculate Price</button>
                     </div>
-                    <div class="grid-2" style="margin-top:10px">
-                        <input type="number" id="invThreshold" placeholder="Low Stock Threshold" value="10">
-                        <input type="text" id="invStoreId" placeholder="Store ID" value="STORE-001">
+
+                    <div class="response-header" id="pricingResponseHeader" style="display:none;">
+                        <strong>Response:</strong>
+                        <div class="view-toggle">
+                            <button onclick="toggleView('pricingResponse', 'json')" class="active"
+                                id="pricingResponse-json-btn">JSON</button>
+                            <button onclick="toggleView('pricingResponse', 'table')"
+                                id="pricingResponse-table-btn">Table</button>
+                        </div>
                     </div>
-                    <button class="btn btn-success" onclick="createInventory()">Create Inventory</button>
-                    <button class="btn btn-secondary" onclick="getInventory()">Get Inventory</button>
-                    <button class="btn btn-secondary" onclick="updateInventory()">Update Quantity</button>
+                    <div id="pricingResponse" class="response-area" style="display:none;"></div>
                 </div>
 
-                <div class="form-group">
-                    <label>Check Low Stock Items</label>
-                    <input type="text" id="lowStockStoreId" placeholder="Store ID (optional)" value="">
-                    <button class="btn btn-primary" onclick="checkLowStock()">Check Low Stock</button>
-                </div>
+                <!-- Inventory Service -->
+                <div class="api-section">
+                    <h3>Inventory Service</h3>
 
-                <div class="form-group">
-                    <label>Reserve Items</label>
-                    <div class="grid-2">
-                        <input type="text" id="reserveProductCode" placeholder="Product Code" value="PROD-001">
-                        <input type="number" id="reserveQuantity" placeholder="Quantity" value="2">
+                    <div class="form-group">
+                        <label>Create Inventory</label>
+                        <div class="grid-2">
+                            <input type="text" id="invProductCode" placeholder="Product Code" value="">
+                            <input type="number" id="invQuantity" placeholder="Quantity" value="">
+                        </div>
+                        <div class="grid-2" style="margin-top:10px">
+                            <input type="number" id="invThreshold" placeholder="Low Stock Threshold" value="">
+                            <input type="text" id="invStoreId" placeholder="Store ID" value="">
+                        </div>
+                        <button class="btn btn-success" onclick="createInventory(event)">Create Inventory</button>
+                        <button class="btn btn-secondary" onclick="getInventory(event)">Get Inventory</button>
+                        <button class="btn btn-secondary" onclick="updateInventory(event)">Update Quantity</button>
                     </div>
-                    <input type="text" id="referenceId" placeholder="Reference/Order ID" value="ORDER-TEST-001" style="margin-top:10px">
-                    <button class="btn btn-primary" onclick="reserveItems()">Reserve Items</button>
-                </div>
 
-                <div class="response-header" id="inventoryResponseHeader" style="display:none;">
-                    <strong>Response:</strong>
-                    <div class="view-toggle">
-                        <button onclick="toggleView('inventoryResponse', 'json')" class="active" id="inventoryResponse-json-btn">JSON</button>
-                        <button onclick="toggleView('inventoryResponse', 'table')" id="inventoryResponse-table-btn">Table</button>
+                    <div class="form-group">
+                        <label>Check Low Stock Items</label>
+                        <input type="text" id="lowStockStoreId" placeholder="Store ID (optional)" value="">
+                        <button class="btn btn-primary" onclick="checkLowStock(event)">Check Low Stock</button>
                     </div>
-                </div>
-                <div id="inventoryResponse" class="response-area" style="display:none;"></div>
-            </div>
 
-            <!-- Finance Service -->
-            <div class="api-section">
-                <h3>Finance Service (Queue-Based Approval)</h3>
-                
-                <div class="form-group">
-                    <label>Request Finance Approval (Sends to Queue)</label>
-                    <input type="text" id="customerId" placeholder="Customer ID" value="CUST-001">
-                    <input type="number" id="amount" placeholder="Amount" value="2499.99" style="margin-top:10px">
-                    <input type="text" id="purpose" placeholder="Purpose" value="Purchase of Laptop Computer" style="margin-top:10px">
-                    <button class="btn btn-primary" onclick="requestFinanceApproval()">Submit to Queue</button>
-                </div>
-
-                <div class="form-group">
-                    <label>Queue Monitoring</label>
-                    <button class="btn btn-secondary" onclick="viewPendingQueue()">View Pending Queue</button>
-                    <button class="btn btn-secondary" onclick="viewQueueStats()">View Queue Statistics</button>
-                </div>
-
-                <div class="form-group">
-                    <label>Process Request from Queue (Manual Approval/Decline)</label>
-                    <input type="text" id="approvalRequestId" placeholder="Request ID (from queue)" value="">
-                    <div style="margin-top:10px">
-                        <button class="btn btn-success" onclick="approveFinance()">Approve & Process</button>
-                        <button class="btn btn-danger" onclick="declineFinance()">Decline & Process</button>
+                    <div class="form-group">
+                        <label>Reserve Items</label>
+                        <div class="grid-2">
+                            <input type="text" id="reserveProductCode" placeholder="Product Code" value="">
+                            <input type="number" id="reserveQuantity" placeholder="Quantity" value="">
+                        </div>
+                        <input type="text" id="referenceId" placeholder="Reference/Order ID" value=""
+                            style="margin-top:10px">
+                        <button class="btn btn-primary" onclick="reserveItems(event)">Reserve Items</button>
                     </div>
-                    <small style="color:#666;display:block;margin-top:5px;">Note: Approval/Decline decisions are queued and processed asynchronously</small>
-                </div>
 
-                <div class="form-group">
-                    <label>Check Request Status</label>
-                    <input type="text" id="checkRequestId" placeholder="Request ID" value="">
-                    <button class="btn btn-secondary" onclick="checkFinanceStatus()">Check Status</button>
-                </div>
-
-                <div class="response-header" id="financeResponseHeader" style="display:none;">
-                    <strong>Response:</strong>
-                    <div class="view-toggle">
-                        <button onclick="toggleView('financeResponse', 'json')" class="active" id="financeResponse-json-btn">JSON</button>
-                        <button onclick="toggleView('financeResponse', 'table')" id="financeResponse-table-btn">Table</button>
+                    <div class="response-header" id="inventoryResponseHeader" style="display:none;">
+                        <strong>Response:</strong>
+                        <div class="view-toggle">
+                            <button onclick="toggleView('inventoryResponse', 'json')" class="active"
+                                id="inventoryResponse-json-btn">JSON</button>
+                            <button onclick="toggleView('inventoryResponse', 'table')"
+                                id="inventoryResponse-table-btn">Table</button>
+                        </div>
                     </div>
+                    <div id="inventoryResponse" class="response-area" style="display:none;"></div>
                 </div>
-                <div id="financeResponse" class="response-area" style="display:none;"></div>
-            </div>
 
-            <!-- View All Section -->
-            <div class="api-section">
-                <h3>View All Data</h3>
-                
-                <div class="form-group">
-                    <label>View All Products</label>
-                    <div class="grid-2">
-                        <select id="productLimit">
+                <!-- Finance Service -->
+                <div class="api-section">
+                    <h3>Finance Service (Queue-Based Approval)</h3>
+
+                    <div class="form-group">
+                        <label>Request Finance Approval (Sends to Queue)</label>
+                        <input type="text" id="customerId" placeholder="Customer ID" value="">
+                        <input type="number" id="amount" placeholder="Amount" value="" style="margin-top:10px">
+                        <input type="text" id="purpose" placeholder="Purpose" value="" style="margin-top:10px">
+                        <button class="btn btn-primary" onclick="requestFinanceApproval(event)">Submit to Queue</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Queue Monitoring</label>
+                        <button class="btn btn-secondary" onclick="viewPendingQueue(event)">View Pending Queue</button>
+                        <button class="btn btn-secondary" onclick="viewQueueStats(event)">View Queue Statistics</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Process Request from Queue (Manual Approval/Decline)</label>
+                        <input type="text" id="approvalRequestId" placeholder="Request ID (from queue)" value="">
+                        <div style="margin-top:10px">
+                            <button class="btn btn-success" onclick="approveFinance(event)">Approve & Process</button>
+                            <button class="btn btn-danger" onclick="declineFinance(event)">Decline & Process</button>
+                        </div>
+                        <small style="color:#666;display:block;margin-top:5px;">Note: Approval/Decline decisions are
+                            queued and processed asynchronously</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Check Request Status</label>
+                        <input type="text" id="checkRequestId" placeholder="Request ID" value="">
+                        <button class="btn btn-secondary" onclick="checkFinanceStatus(event)">Check Status</button>
+                    </div>
+
+                    <div class="response-header" id="financeResponseHeader" style="display:none;">
+                        <strong>Response:</strong>
+                        <div class="view-toggle">
+                            <button onclick="toggleView('financeResponse', 'json')" class="active"
+                                id="financeResponse-json-btn">JSON</button>
+                            <button onclick="toggleView('financeResponse', 'table')"
+                                id="financeResponse-table-btn">Table</button>
+                        </div>
+                    </div>
+                    <div id="financeResponse" class="response-area" style="display:none;"></div>
+                </div>
+
+                <!-- View All Section -->
+                <div class="api-section">
+                    <h3>View All Data</h3>
+
+                    <div class="form-group">
+                        <label>View All Products</label>
+                        <div class="grid-2">
+                            <select id="productLimit">
+                                <option value="10">Limit: 10</option>
+                                <option value="50">Limit: 50</option>
+                                <option value="100">Limit: 100</option>
+                                <option value="500">Limit: 500</option>
+                            </select>
+                            <input type="number" id="productPage" placeholder="Page (optional)" value="">
+                        </div>
+                        <button class="btn btn-primary" onclick="viewAllProducts(event)">View All Products</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>View All Inventory Items</label>
+                        <div class="grid-2">
+                            <select id="inventoryLimit">
+                                <option value="10">Limit: 10</option>
+                                <option value="50">Limit: 50</option>
+                                <option value="100">Limit: 100</option>
+                                <option value="500">Limit: 500</option>
+                            </select>
+                            <input type="text" id="storeIdFilter" placeholder="Store ID (optional)" value="">
+                        </div>
+                        <button class="btn btn-primary" onclick="viewAllInventory(event)">View All Inventory</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label>View All Promotions</label>
+                        <select id="promotionLimit">
                             <option value="10">Limit: 10</option>
                             <option value="50">Limit: 50</option>
                             <option value="100">Limit: 100</option>
-                            <option value="500">Limit: 500</option>
                         </select>
-                        <input type="number" id="productPage" placeholder="Page (optional)" value="0">
+                        <button class="btn btn-primary" onclick="viewAllPromotions(event)">View All Promotions</button>
                     </div>
-                    <button class="btn btn-primary" onclick="viewAllProducts()">View All Products</button>
-                </div>
 
-                <div class="form-group">
-                    <label>View All Inventory Items</label>
-                    <div class="grid-2">
-                        <select id="inventoryLimit">
+                    <div class="form-group">
+                        <label>View All Finance Requests</label>
+                        <select id="financeLimit">
                             <option value="10">Limit: 10</option>
                             <option value="50">Limit: 50</option>
                             <option value="100">Limit: 100</option>
-                            <option value="500">Limit: 500</option>
                         </select>
-                        <input type="text" id="storeIdFilter" placeholder="Store ID (optional)" value="">
+                        <select id="financeStatus" style="margin-top:10px">
+                            <option value="">All Statuses</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="APPROVED">Approved</option>
+                            <option value="DECLINED">Declined</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="viewAllFinanceRequests(event)">View All
+                            Requests</button>
                     </div>
-                    <button class="btn btn-primary" onclick="viewAllInventory()">View All Inventory</button>
-                </div>
 
-                <div class="form-group">
-                    <label>View All Promotions</label>
-                    <select id="promotionLimit">
-                        <option value="10">Limit: 10</option>
-                        <option value="50">Limit: 50</option>
-                        <option value="100">Limit: 100</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="viewAllPromotions()">View All Promotions</button>
-                </div>
-
-                <div class="form-group">
-                    <label>View All Finance Requests</label>
-                    <select id="financeLimit">
-                        <option value="10">Limit: 10</option>
-                        <option value="50">Limit: 50</option>
-                        <option value="100">Limit: 100</option>
-                    </select>
-                    <select id="financeStatus" style="margin-top:10px">
-                        <option value="">All Statuses</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="APPROVED">Approved</option>
-                        <option value="DECLINED">Declined</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="viewAllFinanceRequests()">View All Requests</button>
-                </div>
-
-                <div class="response-header" id="viewAllResponseHeader" style="display:none;">
-                    <strong>Response:</strong>
-                    <div class="view-toggle">
-                        <button onclick="toggleView('viewAllResponse', 'json')" class="active" id="viewAllResponse-json-btn">JSON</button>
-                        <button onclick="toggleView('viewAllResponse', 'table')" id="viewAllResponse-table-btn">Table</button>
+                    <div class="response-header" id="viewAllResponseHeader" style="display:none;">
+                        <strong>Response:</strong>
+                        <div class="view-toggle">
+                            <button onclick="toggleView('viewAllResponse', 'json')" class="active"
+                                id="viewAllResponse-json-btn">JSON</button>
+                            <button onclick="toggleView('viewAllResponse', 'table')"
+                                id="viewAllResponse-table-btn">Table</button>
+                        </div>
                     </div>
+                    <div id="viewAllResponse" class="response-area" style="display:none;"></div>
                 </div>
-                <div id="viewAllResponse" class="response-area" style="display:none;"></div>
-            </div>
 
-            <!-- Utilities Section -->
-            <div class="api-section">
-                <h3>Utilities</h3>
-                <button class="btn btn-primary" onclick="testAllAPIs()">Test All APIs</button>
-                <button class="btn btn-secondary" onclick="clearAllResponses()">Clear All Responses</button>
-                <button class="btn btn-secondary" onclick="exportResponses()">Export Responses</button>
+                <!-- Utilities Section -->
+                <div class="api-section">
+                    <h3>Utilities</h3>
+                    <button class="btn btn-primary" onclick="testAllAPIs(event)">Test All APIs</button>
+                    <button class="btn btn-secondary" onclick="clearAllResponses()">Clear All Responses</button>
+                    <button class="btn btn-secondary" onclick="exportResponses()">Export Responses</button>
+                </div>
             </div>
         </div>
     </div>
@@ -592,19 +624,19 @@
         function showResponse(elementId, data, isError = false) {
             const element = document.getElementById(elementId);
             const header = document.getElementById(elementId + 'Header');
-            
+
             // Store the data
             responseData[elementId] = data;
-            
+
             // Show header and response area
             if (header) header.style.display = 'flex';
             element.style.display = 'block';
             element.className = 'response-area ' + (isError ? 'error' : 'success');
-            
+
             // Default to JSON view
             element.innerHTML = '';
             element.textContent = JSON.stringify(data, null, 2);
-            
+
             // Reset toggle buttons
             const jsonBtn = document.getElementById(elementId + '-json-btn');
             const tableBtn = document.getElementById(elementId + '-table-btn');
@@ -637,11 +669,12 @@
                 });
 
                 const data = await response.json();
-                
+
                 if (data.success) {
                     accessToken = data.data.accessToken;
                     document.getElementById('tokenDisplay').style.display = 'block';
                     document.getElementById('tokenValue').textContent = accessToken;
+                    document.getElementById('secured-content').style.display = 'block';
                     alert('Login successful');
                 } else {
                     alert('Login failed: ' + data.message);
@@ -657,6 +690,7 @@
             accessToken = null;
             document.getElementById('tokenDisplay').style.display = 'none';
             document.getElementById('tokenValue').textContent = '';
+            document.getElementById('secured-content').style.display = 'none';
             alert('Token cleared');
         }
 
@@ -795,6 +829,32 @@
             }
         }
 
+        function toggleDiscountValue() {
+            const promoType = document.getElementById('promoType').value;
+            const container = document.getElementById('discountValueContainer');
+            const discountValue = document.getElementById('discountValue');
+            const hint = document.getElementById('discountHint');
+
+            if (promoType === 'BOGO' || promoType === 'THREE_FOR_TWO') {
+                container.style.display = 'none';
+                discountValue.value = '';
+                discountValue.removeAttribute('required');
+            } else {
+                container.style.display = 'block';
+                discountValue.setAttribute('required', 'required');
+
+                if (promoType === 'PERCENTAGE_DISCOUNT') {
+                    hint.textContent = 'Enter percentage value (0-100). Example: 25 for 25% off';
+                    discountValue.placeholder = 'Enter percentage (0-100)';
+                    discountValue.max = '100';
+                } else if (promoType === 'FIXED_AMOUNT') {
+                    hint.textContent = 'Enter fixed amount to discount per item. Example: 10.00 for £10 off';
+                    discountValue.placeholder = 'Enter fixed amount';
+                    discountValue.removeAttribute('max');
+                }
+            }
+        }
+
         async function createPromotion(event) {
             if (!checkAuth()) return;
             const btn = event.target;
@@ -802,25 +862,108 @@
 
             try {
                 showLoading(btn);
+
+                const promoCode = document.getElementById('promoCode').value.trim();
+                const promoName = document.getElementById('promoName').value.trim();
+                const promoType = document.getElementById('promoType').value;
+                const discountValueInput = document.getElementById('discountValue').value;
+                const applicableProductsInput = document.getElementById('promoApplicableProducts').value.trim();
+
+                // Frontend validation
+                if (!promoCode) {
+                    throw new Error('Promotion code is required');
+                }
+                if (!promoName) {
+                    throw new Error('Promotion name is required');
+                }
+                if (!applicableProductsInput) {
+                    throw new Error('At least one product code is required for applicable products');
+                }
+
+                // Parse product codes (comma-separated)
+                const productCodes = applicableProductsInput.split(',').map(p => p.trim()).filter(p => p.length > 0);
+                if (productCodes.length === 0) {
+                    throw new Error('At least one valid product code is required');
+                }
+
+                // Validate discount value based on promotion type
+                let discountValue = null;
+                if (promoType === 'PERCENTAGE_DISCOUNT' || promoType === 'FIXED_AMOUNT') {
+                    if (!discountValueInput || discountValueInput.trim() === '') {
+                        throw new Error(`Discount value is required for ${promoType === 'PERCENTAGE_DISCOUNT' ? 'percentage discount' : 'fixed amount'} promotions`);
+                    }
+
+                    discountValue = parseFloat(discountValueInput);
+
+                    if (isNaN(discountValue) || discountValue <= 0) {
+                        throw new Error('Discount value must be a positive number');
+                    }
+
+                    if (promoType === 'PERCENTAGE_DISCOUNT' && discountValue > 100) {
+                        throw new Error('Percentage discount cannot exceed 100%');
+                    }
+                } else if (promoType === 'BOGO' || promoType === 'THREE_FOR_TWO') {
+                    // Explicitly set to null for BOGO and THREE_FOR_TWO
+                    discountValue = null;
+                }
+
+                const requestBody = {
+                    promotionCode: promoCode,
+                    promotionName: promoName,
+                    promotionType: promoType,
+                    applicableProducts: productCodes,
+                    startDate: '2025-11-20',
+                    endDate: '2025-12-31'
+                };
+
+                // Only include discountValue if it's not null
+                if (discountValue !== null) {
+                    requestBody.discountValue = discountValue;
+                }
+
                 const response = await fetch(`${BASE_URL}/api/pricing/promotions`, {
                     method: 'POST',
                     headers: getHeaders(),
-                    body: JSON.stringify({
-                        promotionCode: document.getElementById('promoCode').value,
-                        promotionName: document.getElementById('promoName').value,
-                        promotionType: document.getElementById('promoType').value,
-                        applicableProducts: [document.getElementById('productCode').value],
-                        startDate: '2025-11-20',
-                        endDate: '2025-12-31'
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 const data = await response.json();
-                showResponse('pricingResponse', data, !response.ok);
+
+                // Enhanced error message display
+                if (!response.ok) {
+                    if (data.message) {
+                        showResponse('pricingResponse', {
+                            error: data.message,
+                            details: data,
+                            tip: getPromotionTip(promoType)
+                        }, true);
+                    } else {
+                        showResponse('pricingResponse', data, true);
+                    }
+                } else {
+                    showResponse('pricingResponse', data, false);
+                }
             } catch (error) {
-                showResponse('pricingResponse', { error: error.message }, true);
+                showResponse('pricingResponse', {
+                    error: error.message,
+                    tip: 'Please check your inputs and try again'
+                }, true);
             } finally {
                 hideLoading(btn, originalText);
+            }
+        }
+
+        function getPromotionTip(promoType) {
+            switch (promoType) {
+                case 'BOGO':
+                case 'THREE_FOR_TWO':
+                    return 'BOGO and THREE_FOR_TWO promotions do not require a discount value';
+                case 'PERCENTAGE_DISCOUNT':
+                    return 'Percentage discounts require a discount value between 0 and 100';
+                case 'FIXED_AMOUNT':
+                    return 'Fixed amount promotions require a positive discount value';
+                default:
+                    return '';
             }
         }
 
@@ -938,7 +1081,7 @@
                 if (storeId) {
                     url += `?storeId=${storeId}`;
                 }
-                
+
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: getHeaders()
@@ -998,7 +1141,7 @@
 
                 const data = await response.json();
                 showResponse('financeResponse', data, !response.ok);
-                
+
                 // Auto-populate request ID if successful
                 if (data.success && data.data && data.data.requestId) {
                     document.getElementById('approvalRequestId').value = data.data.requestId;
@@ -1078,7 +1221,7 @@
 
                 const data = await response.json();
                 showResponse('financeResponse', data, !response.ok);
-                
+
                 if (data.success) {
                     alert('Approval decision queued! The request will be processed and the enabling system will be contacted.\nCheck status after a few seconds.');
                 }
@@ -1113,7 +1256,7 @@
 
                 const data = await response.json();
                 showResponse('financeResponse', data, !response.ok);
-                
+
                 if (data.success) {
                     alert('Decline decision queued! The request will be processed and marked as rejected.\nCheck status after a few seconds.');
                 }
@@ -1187,7 +1330,7 @@
                 if (storeId) {
                     url += `&storeId=${storeId}`;
                 }
-                
+
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: getHeaders()
@@ -1237,7 +1380,7 @@
                 if (status) {
                     url += `&status=${status}`;
                 }
-                
+
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: getHeaders()
@@ -1260,13 +1403,13 @@
 
             const btn = event.target;
             const originalText = btn.innerHTML;
-            
+
             try {
                 showLoading(btn);
-                
+
                 // Create a fake event object for sub-calls
                 const fakeEvent = { target: btn };
-                
+
                 // Test Pricing Service
                 await createProduct(fakeEvent);
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -1274,7 +1417,7 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
                 await calculatePrice(fakeEvent);
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 // Test Inventory Service
                 await createInventory(fakeEvent);
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -1282,10 +1425,10 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
                 await reserveItems(fakeEvent);
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 // Test Finance Service
                 await requestFinanceApproval(fakeEvent);
-                
+
                 alert('All API tests completed. Check the response sections for details.');
             } catch (error) {
                 alert('Error during testing: ' + error.message);
@@ -1297,13 +1440,13 @@
         function toggleView(elementId, viewType) {
             const element = document.getElementById(elementId);
             const data = responseData[elementId];
-            
+
             if (!data) return;
-            
+
             // Update toggle buttons
             const jsonBtn = document.getElementById(elementId + '-json-btn');
             const tableBtn = document.getElementById(elementId + '-table-btn');
-            
+
             if (viewType === 'json') {
                 jsonBtn.className = 'active';
                 tableBtn.className = '';
@@ -1319,21 +1462,21 @@
         function renderTable(data, level = 0) {
             if (data === null) return '<span class="value-null">null</span>';
             if (data === undefined) return '<span class="value-null">undefined</span>';
-            
+
             const type = typeof data;
-            
+
             if (type === 'string') return `<span class="value-string">"${escapeHtml(data)}"</span>`;
             if (type === 'number') return `<span class="value-number">${data}</span>`;
             if (type === 'boolean') return `<span class="value-boolean">${data}</span>`;
-            
+
             if (Array.isArray(data)) {
                 if (data.length === 0) return '<span class="value-null">[]</span>';
-                
+
                 // Check if array contains objects with similar structure
                 if (data.every(item => typeof item === 'object' && item !== null && !Array.isArray(item))) {
                     return renderArrayAsTable(data);
                 }
-                
+
                 // Render as collapsible list
                 let html = `<div class="collapsible" onclick="toggleCollapse(this)">Array [${data.length}]</div>`;
                 html += '<div class="nested-content">';
@@ -1343,11 +1486,11 @@
                 html += '</div>';
                 return html;
             }
-            
+
             if (type === 'object') {
                 const keys = Object.keys(data);
                 if (keys.length === 0) return '<span class="value-null">{}</span>';
-                
+
                 let html = `<div class="collapsible" onclick="toggleCollapse(this)">Object {${keys.length}}</div>`;
                 html += '<div class="nested-content">';
                 keys.forEach(key => {
@@ -1356,29 +1499,29 @@
                 html += '</div>';
                 return html;
             }
-            
+
             return String(data);
         }
 
         function renderArrayAsTable(array) {
             if (array.length === 0) return '<span class="value-null">[]</span>';
-            
+
             // Get all unique keys from all objects
             const keys = [...new Set(array.flatMap(obj => Object.keys(obj)))];
-            
+
             let html = '<table class="table-view">';
             html += '<thead><tr>';
             keys.forEach(key => {
                 html += `<th>${escapeHtml(key)}</th>`;
             });
             html += '</tr></thead><tbody>';
-            
+
             array.forEach(obj => {
                 html += '<tr>';
                 keys.forEach(key => {
                     const value = obj[key];
                     let cellContent;
-                    
+
                     if (value === null || value === undefined) {
                         cellContent = '<span class="value-null">null</span>';
                     } else if (typeof value === 'object') {
@@ -1392,12 +1535,12 @@
                     } else {
                         cellContent = escapeHtml(String(value));
                     }
-                    
+
                     html += `<td>${cellContent}</td>`;
                 });
                 html += '</tr>';
             });
-            
+
             html += '</tbody></table>';
             return html;
         }
@@ -1466,4 +1609,5 @@
         }
     </script>
 </body>
+
 </html>

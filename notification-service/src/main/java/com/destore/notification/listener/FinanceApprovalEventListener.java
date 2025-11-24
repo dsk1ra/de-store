@@ -27,7 +27,7 @@ public class FinanceApprovalEventListener {
                 "Finance Request Update\n" +
                 "Request ID: %s\n" +
                 "Customer Email: %s\n" +
-                "Amount: $%.2f\n" +
+                "Amount: £%.2f\n" +
                 "Approval Code: %s\n" +
                 "Time: %s",
                 event.getRequestId(),

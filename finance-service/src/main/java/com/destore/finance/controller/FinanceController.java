@@ -35,10 +35,14 @@ public class FinanceController {
     @PutMapping("/approve/{requestId}")
     public ResponseEntity<ApiResponse<FinanceApprovalResponse>> approveRequest(
             @PathVariable String requestId,
-            @RequestBody(required = false) java.util.Map<String, String> body) {
+            @RequestBody java.util.Map<String, String> body) {
         try {
-            String approvedBy = body != null ? body.getOrDefault("approvedBy", "Unknown") : "Unknown";
-            String notes = body != null ? body.get("notes") : null;
+            String approvedBy = body.getOrDefault("approvedBy", "Unknown");
+            String notes = body.get("notes");
+            
+            if (notes == null || notes.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Approval notes/message is required", null));
+            }
             
             FinanceApprovalResponse response = financeIntegrationService.approveRequest(requestId, approvedBy, notes);
             return ResponseEntity.ok(new ApiResponse<>(true, "Finance request approved", response));
@@ -57,12 +61,16 @@ public class FinanceController {
     @PutMapping("/decline/{requestId}")
     public ResponseEntity<ApiResponse<FinanceApprovalResponse>> declineRequest(
             @PathVariable String requestId,
-            @RequestBody(required = false) java.util.Map<String, String> body) {
+            @RequestBody java.util.Map<String, String> body) {
         try {
-            String declinedBy = body != null ? body.getOrDefault("declinedBy", "Unknown") : "Unknown";
-            String notes = body != null ? body.get("notes") : null;
+            String declinedBy = body.getOrDefault("declinedBy", "Unknown");
+            String reason = body.get("reason");
             
-            FinanceApprovalResponse response = financeIntegrationService.declineRequest(requestId, declinedBy, notes);
+            if (reason == null || reason.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Decline reason/message is required", null));
+            }
+            
+            FinanceApprovalResponse response = financeIntegrationService.declineRequest(requestId, declinedBy, reason);
             return ResponseEntity.ok(new ApiResponse<>(true, "Finance request declined", response));
         } catch (IllegalArgumentException e) {
             log.error("Invalid request", e);
@@ -172,6 +180,22 @@ public class FinanceController {
             return ResponseEntity.ok(new ApiResponse<>(true, "Queue statistics retrieved", stats));
         } catch (Exception e) {
             log.error("Error retrieving queue statistics", e);
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
+        }
+    }
+    
+    @PostMapping("/reprocess-pending")
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> reprocessPendingRequests() {
+        try {
+            int reprocessedCount = financeIntegrationService.reprocessPendingRequests();
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("reprocessedCount", reprocessedCount);
+            result.put("message", "Republished " + reprocessedCount + " pending request(s) to queue for simulator processing");
+            
+            return ResponseEntity.ok(new ApiResponse<>(true, 
+                    "Successfully republished " + reprocessedCount + " pending request(s) to queue", result));
+        } catch (Exception e) {
+            log.error("Error reprocessing pending requests", e);
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }

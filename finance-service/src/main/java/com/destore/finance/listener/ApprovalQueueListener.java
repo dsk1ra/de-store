@@ -15,18 +15,9 @@ public class ApprovalQueueListener {
     
     private final FinanceIntegrationService financeIntegrationService;
     
-    @RabbitListener(queues = "${rabbitmq.queue.pending-approval}")
-    public void handlePendingApproval(PendingApprovalMessage message) {
-        log.info("Received pending approval request from queue: {}", message.getRequestId());
-        log.info("Request details - Customer: {}, Amount: {}, Purpose: {}", 
-                message.getCustomerId(), message.getAmount(), message.getPurpose());
-        
-        // Requests now wait in queue for manual approval
-        // DO NOT auto-approve - wait for manual decision via /approve or /decline endpoints
-        log.info("Request {} is waiting in queue for manual approval or decline", message.getRequestId());
-        log.info("Use PUT /api/finance/approve/{} to approve or PUT /api/finance/decline/{} to reject", 
-                message.getRequestId(), message.getRequestId());
-    }
+    // NOTE: The pending-approval queue is now consumed by the enabling-simulator service
+    // When auto-approve is enabled, the simulator will process requests from the queue
+    // and send decisions back to the approval-decision queue
     
     @RabbitListener(queues = "${rabbitmq.queue.approval-decision}")
     public void handleApprovalDecision(ApprovalDecisionMessage decision) {

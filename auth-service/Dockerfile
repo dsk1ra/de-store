@@ -1,10 +1,10 @@
 # Multi-stage build for Auth Service
-FROM eclipse-temurin:17-jdk-alpine AS builder
+FROM eclipse-temurin:17-jdk AS builder
 WORKDIR /app
 COPY target/auth-service-1.0.0.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=builder /app/dependencies/ ./
 COPY --from=builder /app/spring-boot-loader/ ./

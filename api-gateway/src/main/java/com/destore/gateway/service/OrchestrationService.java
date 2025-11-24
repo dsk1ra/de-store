@@ -52,14 +52,16 @@ public class OrchestrationService {
             
             // Step 3: Reserve inventory
             log.info("Step 3: Reserving inventory for order {}", orderId);
+            Map<String, String> reservationIds = new HashMap<>();
             for (PurchaseRequest.PurchaseItem item : request.getItems()) {
-                reserveInventory(item.getProductCode(), item.getQuantity(), orderId, authToken);
+                String reservationId = reserveInventory(item.getProductCode(), item.getQuantity(), orderId, authToken);
+                reservationIds.put(item.getProductCode(), reservationId);
             }
             
-            // Step 4: Deduct inventory
-            log.info("Step 4: Deducting inventory for order {}", orderId);
-            for (PurchaseRequest.PurchaseItem item : request.getItems()) {
-                deductInventory(item.getProductCode(), item.getQuantity(), authToken);
+            // Step 4: Confirm reservations (deduct from inventory)
+            log.info("Step 4: Confirming reservations for order {}", orderId);
+            for (Map.Entry<String, String> entry : reservationIds.entrySet()) {
+                confirmReservation(entry.getValue(), authToken);
             }
             
             log.info("Purchase completed successfully for order {}", orderId);
@@ -142,7 +144,7 @@ public class OrchestrationService {
         }
     }
     
-    private void reserveInventory(String productCode, Integer quantity, String orderId, String authToken) {
+    private String reserveInventory(String productCode, Integer quantity, String orderId, String authToken) {
         try {
             String url = "http://localhost:8083/api/inventory/" + productCode + "/reserve";
             HttpHeaders headers = new HttpHeaders();
@@ -151,27 +153,45 @@ public class OrchestrationService {
             
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("quantity", quantity);
-            requestBody.put("referenceId", orderId);
+            requestBody.put("notes", "Reserved for order: " + orderId);
             
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-            restTemplate.postForEntity(url, entity, String.class);
+            @SuppressWarnings("rawtypes")
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+            
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> body = response.getBody();
+                if (body != null) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> data = (Map<String, Object>) body.get("data");
+                    return (String) data.get("reservationId");
+                }
+            }
+            throw new RuntimeException("Failed to get reservation ID");
         } catch (Exception e) {
             log.error("Error reserving inventory", e);
-            throw new RuntimeException("Failed to reserve inventory");
+            throw new RuntimeException("Failed to reserve inventory: " + e.getMessage());
         }
     }
     
-    private void deductInventory(String productCode, Integer quantity, String authToken) {
+    private void confirmReservation(String reservationId, String authToken) {
         try {
-            String url = "http://localhost:8083/api/inventory/" + productCode + "/deduct?quantity=" + quantity;
+            String url = "http://localhost:8083/api/inventory/reservations/confirm";
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", authToken);
+            headers.set("Content-Type", "application/json");
             
-            HttpEntity<String> entity = new HttpEntity<>(headers);
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("reservationId", reservationId);
+            requestBody.put("notes", "Confirmed via purchase workflow");
+            
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
             restTemplate.postForEntity(url, entity, String.class);
+            log.info("Successfully confirmed reservation {}", reservationId);
         } catch (Exception e) {
-            log.error("Error deducting inventory", e);
-            throw new RuntimeException("Failed to deduct inventory");
+            log.error("Error confirming reservation {}", reservationId, e);
+            throw new RuntimeException("Failed to confirm reservation: " + e.getMessage());
         }
     }
 }

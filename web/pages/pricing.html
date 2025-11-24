@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DE-Store - Pricing Service</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-left">
+            <button class="back-btn" onclick="goToDashboard()">← Dashboard</button>
+            <h1>Pricing Service</h1>
+        </div>
+        <div class="user-info">
+            <span class="user-name" id="userName">Loading...</span>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-section">
+            <h2>Manage Products</h2>
+            <p class="section-description">Create and manage product information</p>
+
+            <form class="form-grid" onsubmit="createProduct(event)">
+                <div class="form-group">
+                    <label for="productCode">Product Code</label>
+                    <input type="text" id="productCode" placeholder="Product Code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" placeholder="Product Name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="basePrice">Base Price</label>
+                    <input type="number" id="basePrice" placeholder="Base Price" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button type="submit" class="btn btn-success">Create Product</button>
+                    <button type="button" class="btn btn-primary" onclick="getProduct(event)">Get Product</button>
+                    <button type="button" class="btn btn-secondary" onclick="updateProduct(event)">Update
+                        Product</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteProduct(event)">Delete Product</button>
+                </div>
+            </form>
+
+            <div id="productResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>Search Products</h2>
+            <p class="section-description">Search for products by name or code</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="productSearch">Search Query</label>
+                    <input type="text" id="productSearch" placeholder="Search by name or code">
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="searchProducts(event)">Search</button>
+                </div>
+            </div>
+
+            <div id="searchResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>Create Promotion</h2>
+            <p class="section-description">Set up promotional offers and discounts</p>
+
+            <form class="form-grid" onsubmit="createPromotion(event)">
+                <div class="form-group">
+                    <label for="promoCode">Promotion Code</label>
+                    <input type="text" id="promoCode" placeholder="Promotion Code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="promoName">Promotion Name</label>
+                    <input type="text" id="promoName" placeholder="Promotion Name" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="promoApplicableProducts">Applicable Product Codes</label>
+                    <input type="text" id="promoApplicableProducts"
+                        placeholder="Comma-separated product codes (e.g., PROD001,PROD002)" required>
+                    <small style="color: #7f8c8d;">Enter multiple product codes separated by commas</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="promoType">Promotion Type</label>
+                    <select id="promoType" onchange="toggleDiscountValue()" required>
+                        <option value="BOGO">Buy One Get One (BOGO)</option>
+                        <option value="THREE_FOR_TWO">Three for Two</option>
+                        <option value="PERCENTAGE_DISCOUNT">Percentage Discount</option>
+                        <option value="FIXED_AMOUNT">Fixed Amount</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="promoStartDate">Start Date</label>
+                    <input type="date" id="promoStartDate" required>
+                    <small style="color: #7f8c8d;">Promotion start date</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="promoEndDate">End Date</label>
+                    <input type="date" id="promoEndDate" required>
+                    <small style="color: #7f8c8d;">Promotion end date</small>
+                </div>
+
+                <div class="form-group" id="discountValueContainer" style="display:none;">
+                    <label for="discountValue">Discount Value</label>
+                    <input type="number" id="discountValue" placeholder="Discount Value" step="0.01" min="0">
+                    <small id="discountHint" style="color: #7f8c8d;"></small>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button type="submit" class="btn btn-success">Create Promotion</button>
+                </div>
+            </form>
+
+            <div id="promoResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>Calculate Price</h2>
+            <p class="section-description">Calculate final price with applicable promotions</p>
+
+            <form class="form-grid" onsubmit="calculatePrice(event)">
+                <div class="form-group">
+                    <label for="calcProductCode">Product Code</label>
+                    <input type="text" id="calcProductCode" placeholder="Product Code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="calcQuantity">Quantity</label>
+                    <input type="number" id="calcQuantity" placeholder="Quantity" min="1" required>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button type="submit" class="btn btn-primary">Calculate Price</button>
+                </div>
+            </form>
+
+            <div id="priceResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>View All Data</h2>
+            <p class="section-description">Browse products and promotions</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="dataType">Data Type</label>
+                    <select id="dataType">
+                        <option value="products">Products</option>
+                        <option value="promotions">Promotions</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dataLimit">Limit</label>
+                    <select id="dataLimit">
+                        <option value="10">10 records</option>
+                        <option value="50">50 records</option>
+                        <option value="100">100 records</option>
+                        <option value="500">500 records</option>
+                    </select>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button class="btn btn-primary" onclick="viewAllData(event)">View All</button>
+                </div>
+            </div>
+
+            <div id="allDataResponse" class="response-area" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/utils.js"></script>
+    <script>
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                initializePageHeader();
+            }
+        });
+
+        function toggleDiscountValue() {
+            const promoType = document.getElementById('promoType').value;
+            const container = document.getElementById('discountValueContainer');
+            const discountValue = document.getElementById('discountValue');
+            const hint = document.getElementById('discountHint');
+
+            if (promoType === 'BOGO' || promoType === 'THREE_FOR_TWO') {
+                container.style.display = 'none';
+                discountValue.value = '';
+                discountValue.removeAttribute('required');
+            } else {
+                container.style.display = 'block';
+                discountValue.setAttribute('required', 'required');
+
+                if (promoType === 'PERCENTAGE_DISCOUNT') {
+                    hint.textContent = 'Enter percentage value (0-100). Example: 25 for 25% off';
+                    discountValue.placeholder = 'Enter percentage (0-100)';
+                    discountValue.max = '100';
+                } else if (promoType === 'FIXED_AMOUNT') {
+                    hint.textContent = 'Enter fixed amount to discount per item. Example: 10.00 for £10 off';
+                    discountValue.placeholder = 'Enter fixed amount';
+                    discountValue.removeAttribute('max');
+                }
+            }
+        }
+
+        async function createProduct(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/pricing/products`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        productCode: document.getElementById('productCode').value,
+                        productName: document.getElementById('productName').value,
+                        basePrice: parseFloat(document.getElementById('basePrice').value)
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('productResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Product created successfully');
+                }
+            } catch (error) {
+                handleApiError(error, 'creating product');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function getProduct(event) {
+            const btn = event.target;
+            const productCode = document.getElementById('productCode').value;
+
+            if (!productCode) {
+                showError('Please enter a Product Code');
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/pricing/products/${productCode}`, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('productResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'fetching product');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function updateProduct(event) {
+            const btn = event.target;
+            const productCode = document.getElementById('productCode').value;
+
+            if (!productCode) {
+                showError('Please enter a Product Code');
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/pricing/products/${productCode}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        productName: document.getElementById('productName').value,
+                        basePrice: parseFloat(document.getElementById('basePrice').value)
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('productResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Product updated successfully');
+                }
+            } catch (error) {
+                handleApiError(error, 'updating product');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function deleteProduct(event) {
+            const btn = event.target;
+            const productCode = document.getElementById('productCode').value;
+
+            if (!productCode) {
+                showError('Please enter a Product Code');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete product ${productCode}?`)) {
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/pricing/products/${productCode}`, {
+                    method: 'DELETE',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('productResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Product deleted successfully');
+                    document.getElementById('productCode').value = '';
+                    document.getElementById('productName').value = '';
+                    document.getElementById('basePrice').value = '';
+                }
+            } catch (error) {
+                handleApiError(error, 'deleting product');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function searchProducts(event) {
+            const btn = event.target;
+            const query = document.getElementById('productSearch').value;
+
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/pricing/products/search?q=${encodeURIComponent(query)}`, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('searchResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'searching products');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function createPromotion(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            try {
+                showLoading(btn);
+                const promoType = document.getElementById('promoType').value;
+                const applicableProducts = document.getElementById('promoApplicableProducts').value
+                    .split(',')
+                    .map(code => code.trim())
+                    .filter(code => code.length > 0);
+
+                const requestBody = {
+                    promotionCode: document.getElementById('promoCode').value,
+                    promotionName: document.getElementById('promoName').value,
+                    promotionType: promoType,
+                    applicableProducts: applicableProducts,
+                    startDate: document.getElementById('promoStartDate').value,
+                    endDate: document.getElementById('promoEndDate').value
+                };
+
+                if (promoType === 'PERCENTAGE_DISCOUNT' || promoType === 'FIXED_AMOUNT') {
+                    requestBody.discountValue = parseFloat(document.getElementById('discountValue').value);
+                }
+
+                const response = await fetch(`${BASE_URL}/api/pricing/promotions`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                showResponse('promoResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Promotion created successfully');
+                    event.target.reset();
+                    toggleDiscountValue();
+                }
+            } catch (error) {
+                handleApiError(error, 'creating promotion');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function calculatePrice(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/pricing/calculate`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        items: [{
+                            productCode: document.getElementById('calcProductCode').value,
+                            quantity: parseInt(document.getElementById('calcQuantity').value)
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('priceResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'calculating price');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function viewAllData(event) {
+            const btn = event.target;
+            const dataType = document.getElementById('dataType').value;
+            const limit = document.getElementById('dataLimit').value;
+
+            try {
+                showLoading(btn);
+                const endpoint = dataType === 'products' ? 'products' : 'promotions';
+                const response = await fetch(`${BASE_URL}/api/pricing/${endpoint}?limit=${limit}`, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('allDataResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, `fetching ${dataType}`);
+            } finally {
+                hideLoading(btn);
+            }
+        }
+    </script>
+</body>
+
+</html>

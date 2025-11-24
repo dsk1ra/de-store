@@ -12,7 +12,14 @@ spring:
               - POST
               - PUT
               - DELETE
-            allowed-headers: "*"
+              - OPTIONS
+            allowed-headers:
+              - "*"
+              - Authorization
+              - Content-Type
+            allow-credentials: false
+            exposed-headers:
+              - Authorization
 
 server:
   port: 8080

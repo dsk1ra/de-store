@@ -119,34 +119,50 @@ public class FinanceIntegrationService {
         }
         
         try {
-            // Call Enabling system
-            EnablingRequest enablingRequest = EnablingRequest.builder()
-                    .customerId(financeRequest.getCustomerId())
-                    .amount(financeRequest.getAmount())
-                    .requestId(requestId)
-                    .build();
-            
-            String url = enablingServiceUrl + "/api/enabling/approve";
-            EnablingResponse enablingResponse = restTemplate.postForObject(url, enablingRequest, EnablingResponse.class);
-            
-            if (enablingResponse != null && enablingResponse.isApproved()) {
-                // Update status to approved
+            // Check if the decision already came from the enabling simulator (auto-processed from queue)
+            if ("ENABLING_SIMULATOR".equals(approvedBy)) {
+                // Decision was already made by the simulator via queue processing
+                // Just apply the decision directly without calling the REST API again
                 financeRequest.setStatus(RequestStatus.APPROVED);
-                financeRequest.setExternalReferenceId(enablingResponse.getRequestId());
-                financeRequest.setApprovalNotes("Approved by: " + approvedBy + ". " + (notes != null ? notes : "") + ". Enabling: " + enablingResponse.getReason());
+                financeRequest.setExternalReferenceId(requestId);
+                financeRequest.setApprovalNotes("Approved by: " + approvedBy + ". " + (notes != null ? notes : ""));
                 financeRequestRepository.save(financeRequest);
                 
                 // Publish approval event
-                publishApprovalEvent(financeRequest, true, enablingResponse.getReason());
+                publishApprovalEvent(financeRequest, true, notes != null ? notes : "Approved via queue processing");
                 
                 log.info("Processed approval for finance request {} by {}", requestId, approvedBy);
             } else {
-                // Enabling system rejected
-                financeRequest.setStatus(RequestStatus.REJECTED);
-                financeRequest.setApprovalNotes("Rejected by Enabling system: " + (enablingResponse != null ? enablingResponse.getReason() : "Unknown reason"));
-                financeRequestRepository.save(financeRequest);
+                // Manual approval - need to call Enabling system
+                EnablingRequest enablingRequest = EnablingRequest.builder()
+                        .customerId(financeRequest.getCustomerId())
+                        .amount(financeRequest.getAmount())
+                        .requestId(requestId)
+                        .build();
                 
-                log.info("Enabling system rejected request {}", requestId);
+                String url = enablingServiceUrl + "/api/enabling/approve";
+                EnablingResponse enablingResponse = restTemplate.postForObject(url, enablingRequest, EnablingResponse.class);
+                log.info("Enabling simulator called for request {}", requestId);
+                
+                if (enablingResponse != null && enablingResponse.isApproved()) {
+                    // Update status to approved
+                    financeRequest.setStatus(RequestStatus.APPROVED);
+                    financeRequest.setExternalReferenceId(enablingResponse.getRequestId());
+                    financeRequest.setApprovalNotes("Approved by: " + approvedBy + ". " + (notes != null ? notes : "") + ". Enabling: " + enablingResponse.getReason());
+                    financeRequestRepository.save(financeRequest);
+                    
+                    // Publish approval event
+                    publishApprovalEvent(financeRequest, true, enablingResponse.getReason());
+                    
+                    log.info("Processed approval for finance request {} by {}", requestId, approvedBy);
+                } else {
+                    // Enabling system rejected
+                    financeRequest.setStatus(RequestStatus.REJECTED);
+                    financeRequest.setApprovalNotes("Rejected by Enabling system: " + (enablingResponse != null ? enablingResponse.getReason() : "Unknown reason"));
+                    financeRequestRepository.save(financeRequest);
+                    
+                    log.info("Enabling system rejected request {}", requestId);
+                }
             }
         } catch (Exception e) {
             log.error("Error calling Enabling system for approval", e);
@@ -235,4 +251,31 @@ public class FinanceIntegrationService {
         rabbitTemplate.convertAndSend(financeApprovalExchange, financeApprovalRoutingKey, event);
         log.info("Published finance approval event for request: {}, approved: {}", request.getRequestId(), approved);
     }
+    
+    /**
+     * Republish all pending requests to the queue for processing by the enabling simulator
+     */
+    @Transactional
+    public int reprocessPendingRequests() {
+        List<FinanceRequest> pendingRequests = financeRequestRepository.findByStatus(RequestStatus.PENDING);
+        
+        log.info("Found {} pending request(s) to reprocess", pendingRequests.size());
+        
+        for (FinanceRequest request : pendingRequests) {
+            // Republish to pending approval queue
+            PendingApprovalMessage message = PendingApprovalMessage.builder()
+                    .requestId(request.getRequestId())
+                    .customerId(request.getCustomerId())
+                    .amount(request.getAmount())
+                    .purpose(request.getApprovalNotes())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            
+            rabbitTemplate.convertAndSend(financeApprovalExchange, pendingApprovalRoutingKey, message);
+            log.info("Republished pending request {} to queue for simulator processing", request.getRequestId());
+        }
+        
+        return pendingRequests.size();
+    }
+    
 }

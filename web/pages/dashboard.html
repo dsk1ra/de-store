@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DE-Store - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #e8eaed;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #1e3a5f;
+            color: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #0d1f35;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-name {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #2c4f7c;
+            border: 1px solid #3d5f8a;
+            border-radius: 3px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .logout-btn:hover {
+            background: #3d5f8a;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-section {
+            background: white;
+            padding: 30px;
+            border: 1px solid #d1d5db;
+            margin-bottom: 40px;
+        }
+
+        .welcome-section h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .welcome-section p {
+            color: #7f8c8d;
+            font-size: 1em;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .service-card {
+            background: white;
+            padding: 30px;
+            border: 1px solid #d1d5db;
+            cursor: pointer;
+        }
+
+        .service-card:hover {
+            border-color: #1e3a5f;
+            background: #f9fafb;
+        }
+
+        .service-card h3 {
+            color: #2c3e50;
+            font-size: 1.4em;
+            margin-bottom: 10px;
+        }
+
+        .service-card p {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>DE-Store Dashboard</h1>
+        <div class="user-info">
+            <span class="user-name" id="userName">Loading...</span>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h2>Welcome to DE-Store</h2>
+            <p>Select a service below to manage your store operations</p>
+        </div>
+
+        <div class="services-grid">
+            <div class="service-card pricing" onclick="navigateToService('pricing.html')">
+                <h3>Pricing Service</h3>
+                <p>Manage product pricing, promotions, and discounts</p>
+            </div>
+
+            <div class="service-card inventory" onclick="navigateToService('inventory.html')">
+                <h3>Inventory Service</h3>
+                <p>Track and manage product inventory across stores</p>
+            </div>
+
+            <div class="service-card finance" onclick="navigateToService('finance.html')">
+                <h3>Finance Service</h3>
+                <p>Handle financial approvals and queue management</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        function checkAuth() {
+            const token = sessionStorage.getItem('accessToken');
+            const username = sessionStorage.getItem('username');
+
+            if (!token || !username) {
+                window.location.href = '../login.html';
+                return false;
+            }
+
+            return true;
+        }
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                const username = sessionStorage.getItem('username');
+                const role = sessionStorage.getItem('role');
+                document.getElementById('userName').textContent = `${username} (${role})`;
+            }
+        });
+
+        // Navigate to service
+        function navigateToService(page) {
+            window.location.href = page;
+        }
+
+        // Logout
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.clear();
+                window.location.href = '../login.html';
+            }
+        }
+    </script>
+</body>
+
+</html>

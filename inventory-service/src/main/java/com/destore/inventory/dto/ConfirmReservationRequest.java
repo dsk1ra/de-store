@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReservationRequest {
-    private Integer quantity;
-    private String notes;  // Optional notes for the reservation
+public class ConfirmReservationRequest {
+    private String reservationId;
+    private String notes;
 }

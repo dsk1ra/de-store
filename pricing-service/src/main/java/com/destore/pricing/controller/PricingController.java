@@ -100,10 +100,27 @@ public class PricingController {
         try {
             Promotion promotion = pricingService.createPromotion(request);
             return ResponseEntity.ok(ApiResponse.success("Promotion created successfully", promotion));
-        } catch (Exception e) {
-            log.error("Failed to create promotion", e);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            log.error("Database constraint violation while creating promotion", e);
+            String errorMessage = "Promotion with code '" + request.getPromotionCode() + "' already exists";
+            if (e.getMessage() != null && e.getMessage().contains("promotion_code")) {
+                errorMessage = "A promotion with this code already exists. Please use a different promotion code.";
+            }
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error(errorMessage));
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid promotion data", e);
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Failed to create promotion", e);
+            String message = e.getMessage();
+            if (message != null && message.contains("already exists")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(ApiResponse.error(message));
+            }
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(message != null ? message : "Failed to create promotion"));
         }
     }
     

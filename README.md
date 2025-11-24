@@ -45,7 +45,8 @@ DE-Store is a comprehensive distributed store management system built using Serv
 
 6. **Enabling Simulator** (Port 9000)
    - Simulates external Enabling finance system
-   - Mock approval/rejection logic
+   - Configurable approval/rejection logic with threshold-based decisions
+   - Configurable auto-approve mode for testing
 
 7. **API Gateway** (Port 8080)
    - Single entry point for all client requests
@@ -202,6 +203,7 @@ Content-Type: application/json
 POST /api/pricing/promotions
 Authorization: Bearer <token>
 
+# BOGO Promotion (no discountValue needed)
 {
   "promotionCode": "BOGO-LAPTOPS",
   "promotionName": "Buy One Get One Free",
@@ -210,7 +212,45 @@ Authorization: Bearer <token>
   "startDate": "2025-11-20",
   "endDate": "2025-12-31"
 }
+
+# THREE_FOR_TWO Promotion (no discountValue needed)
+{
+  "promotionCode": "3FOR2-CABLES",
+  "promotionName": "Three for Two on Cables",
+  "promotionType": "THREE_FOR_TWO",
+  "applicableProducts": ["PROD-003"],
+  "startDate": "2025-11-20",
+  "endDate": "2025-12-31"
+}
+
+# PERCENTAGE_DISCOUNT Promotion (discountValue required: 0-100)
+{
+  "promotionCode": "WINTER25",
+  "promotionName": "25% Off Winter Sale",
+  "promotionType": "PERCENTAGE_DISCOUNT",
+  "discountValue": 25,
+  "applicableProducts": ["PROD-001", "PROD-004"],
+  "startDate": "2025-11-20",
+  "endDate": "2025-12-31"
+}
+
+# FIXED_AMOUNT Promotion (discountValue required: amount off per item)
+{
+  "promotionCode": "SAVE10",
+  "promotionName": "£10 Off Each Item",
+  "promotionType": "FIXED_AMOUNT",
+  "discountValue": 10.00,
+  "applicableProducts": ["PROD-001"],
+  "startDate": "2025-11-20",
+  "endDate": "2025-12-31"
+}
 ```
+
+**Promotion Types:**
+- `BOGO`: Buy one get one free (no discountValue)
+- `THREE_FOR_TWO`: Buy 3 pay for 2 (no discountValue)
+- `PERCENTAGE_DISCOUNT`: Percentage off (discountValue: 0-100)
+- `FIXED_AMOUNT`: Fixed amount off per item (discountValue: > 0)
 
 #### Calculate Price
 ```bash
@@ -324,7 +364,7 @@ Response:
     "requestId": "FIN-REQ-001",
     "status": "APPROVED",
     "approvalCode": "ENBLN-12345",
-    "message": "Finance approved for $2499.99"
+    "message": "Finance approved for £2499.99"
   }
 }
 ```

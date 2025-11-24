@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Set JAVA_HOME to Java 17 if available via Homebrew
+if [ -d "/opt/homebrew/opt/openjdk@17" ]; then
+    export JAVA_HOME="/opt/homebrew/opt/openjdk@17"
+    export PATH="$JAVA_HOME/bin:$PATH"
+    echo "Using Java from $JAVA_HOME"
+fi
+
 # DE-Store Quick Start Script
 # This script builds and starts the entire DE-Store system
 
@@ -73,18 +80,18 @@ echo "Checking service health..."
 echo "=========================================="
 
 services=(
-    "http://localhost:8081/auth/health:Authentication Service"
-    "http://localhost:8082/pricing/health:Pricing Service"
-    "http://localhost:8083/inventory/health:Inventory Service"
-    "http://localhost:8084/finance/health:Finance Service"
-    "http://localhost:8085/notification/health:Notification Service"
-    "http://localhost:9000/api/enabling/health:Enabling Simulator"
+    "http://localhost:8081/auth/health|Authentication Service"
+    "http://localhost:8082/pricing/health|Pricing Service"
+    "http://localhost:8083/inventory/health|Inventory Service"
+    "http://localhost:8084/finance/health|Finance Service"
+    "http://localhost:8085/notification/health|Notification Service"
+    "http://localhost:9000/api/enabling/health|Enabling Simulator"
 )
 
 all_healthy=true
 
 for service in "${services[@]}"; do
-    IFS=':' read -r url name <<< "$service"
+    IFS='|' read -r url name <<< "$service"
     
     if curl -s -f "$url" > /dev/null; then
         echo "✅ $name"

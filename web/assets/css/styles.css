@@ -1,0 +1,391 @@
+/* Shared styles for DE-Store web interface */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: #e8eaed;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Header */
+.header {
+    background: #1e3a5f;
+    color: white;
+    padding: 20px 30px;
+    border-bottom: 1px solid #0d1f35;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header h1 {
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.back-btn {
+    padding: 8px 16px;
+    background: #2c4f7c;
+    border: 1px solid #3d5f8a;
+    border-radius: 3px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.back-btn:hover {
+    background: #3d5f8a;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-name {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.logout-btn {
+    padding: 8px 16px;
+    background: #2c4f7c;
+    border: 1px solid #3d5f8a;
+    border-radius: 3px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.logout-btn:hover {
+    background: #3d5f8a;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+/* Page Section */
+.page-section {
+    background: white;
+    border: 1px solid #d1d5db;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.page-section h2 {
+    color: #2c3e50;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.section-description {
+    color: #7f8c8d;
+    font-size: 0.95em;
+    margin-bottom: 25px;
+}
+
+/* Forms */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-size: 0.9em;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #9ca3af;
+    border-radius: 2px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #1e3a5f;
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Buttons */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 2px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: #1e3a5f;
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #2c4f7c;
+}
+
+.btn-secondary {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: #4b5563;
+}
+
+.btn-success {
+    background: #059669;
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: #047857;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #b91c1c;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.form-actions.full-width {
+    grid-column: 1 / -1;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+/* Simulator Status */
+.simulator-status {
+    padding: 15px;
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    margin-bottom: 15px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    font-weight: 600;
+    font-size: 0.9em;
+    display: inline-block;
+    border: 1px solid #333333;
+    background: #ffffff;
+    color: #333333;
+}
+
+.status-badge.status-enabled {
+    background: #ffffff;
+    color: #006600;
+    border: 1px solid #006600;
+}
+
+.status-badge.status-disabled {
+    background: #ffffff;
+    color: #cc6600;
+    border: 1px solid #cc6600;
+}
+
+.status-badge.status-unknown {
+    background: #ffffff;
+    color: #cc0000;
+    border: 1px solid #cc0000;
+}
+
+.status-text {
+    color: #333333;
+    font-size: 0.9em;
+}
+
+/* Simulator Configuration */
+.simulator-config {
+    padding: 15px;
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    margin-bottom: 15px;
+}
+
+.config-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 10px;
+}
+
+.config-item {
+    padding: 10px;
+    background: #f5f5f5;
+    border: 1px solid #cccccc;
+}
+
+.config-label {
+    display: block;
+    font-weight: 600;
+    color: #333333;
+    font-size: 0.85em;
+    margin-bottom: 4px;
+}
+
+.config-value {
+    display: block;
+    font-size: 1em;
+    color: #000000;
+    font-weight: 600;
+}
+
+/* Loading Spinner */
+.loading {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #1e3a5f;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Response Area */
+.response-area {
+    background: #f9fafb;
+    color: #333;
+    padding: 15px;
+    margin-top: 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    border: 1px solid #d1d5db;
+    word-break: break-all;
+}
+
+.response-area.success {
+    border-left: 4px solid #059669;
+    background: #ecfdf5;
+}
+
+.response-area.error {
+    border-left: 4px solid #dc2626;
+    background: #fef2f2;
+}
+
+/* Grid Layouts */
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .header-left {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-grid,
+    .grid-2,
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DE-Store - Finance Service</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-left">
+            <button class="back-btn" onclick="goToDashboard()">← Dashboard</button>
+            <h1>Finance Service</h1>
+        </div>
+        <div class="user-info">
+            <span class="user-name" id="userName">Loading...</span>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-section">
+            <h2>Request Finance Approval</h2>
+            <p class="section-description">Submit a new finance approval request to the queue</p>
+
+            <form class="form-grid" onsubmit="requestFinanceApproval(event)">
+                <div class="form-group">
+                    <label for="customerId">Customer ID</label>
+                    <input type="text" id="customerId" placeholder="Customer ID" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" placeholder="Amount" step="0.01" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="purpose">Purpose</label>
+                    <input type="text" id="purpose" placeholder="Purpose of approval" required>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                </div>
+            </form>
+
+            <div id="approvalResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>Manage Approvals</h2>
+            <p class="section-description">Approve or decline pending finance requests</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="approvalRequestId">Request ID</label>
+                    <input type="text" id="approvalRequestId" placeholder="Enter Request ID">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="decisionMessage">Decision Message (Required)</label>
+                    <textarea id="decisionMessage" placeholder="Enter reason for approval or decline" rows="3"
+                        required></textarea>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button class="btn btn-success" onclick="approveFinance(event)">Approve</button>
+                    <button class="btn btn-danger" onclick="declineFinance(event)">Decline</button>
+                </div>
+            </div>
+
+            <div id="manageResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>Queue Monitoring</h2>
+            <p class="section-description">View pending requests and queue statistics</p>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="viewPendingQueue(event)">View Pending Queue</button>
+                <button class="btn btn-secondary" onclick="viewQueueStats(event)">View Queue Stats</button>
+                <button class="btn btn-secondary" onclick="checkApprovalStatus(event)">Check Status</button>
+            </div>
+
+            <div id="queueResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>Enabling Simulator Configuration</h2>
+            <p class="section-description">View and configure the external enabling system simulator</p>
+
+            <div style="margin-bottom: 20px;">
+                <h3>Current Settings</h3>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div>Approval Threshold: <span id="currentThreshold">Loading...</span></div>
+                    <div>Processing Delay: <span id="currentDelay">Loading...</span></div>
+                    <div>Auto-Approve Enabled: <span id="currentAutoApprove">Loading...</span></div>
+                </div>
+            </div>
+
+            <form class="form-grid" onsubmit="updateSimulatorConfig(event)">
+
+                <div class="form-group">
+                    <label for="approvalThreshold">Approval Threshold (£)</label>
+                    <input type="number" id="approvalThreshold" placeholder="5000.00" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="processingDelay">Processing Delay (ms)</label>
+                    <input type="number" id="processingDelay" placeholder="500" min="0" max="10000">
+                </div>
+
+                <div class="form-group">
+                    <label for="autoApproveEnabled">Auto-Approve Enabled</label>
+                    <select id="autoApproveEnabled">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button type="submit" class="btn btn-primary">Update Configuration</button>
+                    <button type="button" class="btn btn-secondary" onclick="loadSimulatorConfig()">Reload</button>
+                </div>
+            </form>
+
+            <div id="configResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>View All Requests</h2>
+            <p class="section-description">Browse all finance approval requests</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="financeLimit">Limit</label>
+                    <select id="financeLimit">
+                        <option value="10">10 records</option>
+                        <option value="50">50 records</option>
+                        <option value="100">100 records</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="financeStatus">Status Filter</label>
+                    <select id="financeStatus">
+                        <option value="">All Statuses</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="APPROVED">Approved</option>
+                        <option value="DECLINED">Declined</option>
+                    </select>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button class="btn btn-primary" onclick="viewAllFinanceRequests(event)">View All Requests</button>
+                </div>
+            </div>
+
+            <div id="allRequestsResponse" class="response-area" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/utils.js"></script>
+    <script>
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                initializePageHeader();
+                loadSimulatorConfig();
+            }
+        });
+
+        async function requestFinanceApproval(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/finance/approve`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        customerId: document.getElementById('customerId').value,
+                        amount: parseFloat(document.getElementById('amount').value),
+                        purpose: document.getElementById('purpose').value
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('approvalResponse', data, !response.ok);
+
+                if (data.success && data.data && data.data.requestId) {
+                    document.getElementById('approvalRequestId').value = data.data.requestId;
+                    showSuccess(`Request submitted! ID: ${data.data.requestId}`);
+                    event.target.reset();
+                }
+            } catch (error) {
+                handleApiError(error, 'submitting finance approval');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function approveFinance(event) {
+            const requestId = document.getElementById('approvalRequestId').value;
+            const decisionMessage = document.getElementById('decisionMessage').value;
+
+            if (!requestId) {
+                showError('Please enter a Request ID');
+                return;
+            }
+
+            if (!decisionMessage || !decisionMessage.trim()) {
+                showError('Please enter a decision message');
+                return;
+            }
+
+            const btn = event.target;
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/finance/approve/${requestId}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        approvedBy: sessionStorage.getItem('username'),
+                        notes: decisionMessage
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('manageResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Request approved successfully');
+                    document.getElementById('approvalRequestId').value = '';
+                    document.getElementById('decisionMessage').value = '';
+                }
+            } catch (error) {
+                handleApiError(error, 'approving request');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function declineFinance(event) {
+            const requestId = document.getElementById('approvalRequestId').value;
+            const decisionMessage = document.getElementById('decisionMessage').value;
+
+            if (!requestId) {
+                showError('Please enter a Request ID');
+                return;
+            }
+
+            if (!decisionMessage || !decisionMessage.trim()) {
+                showError('Please enter a decision message');
+                return;
+            }
+
+            const btn = event.target;
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/finance/decline/${requestId}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        declinedBy: sessionStorage.getItem('username'),
+                        reason: decisionMessage
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('manageResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Request declined successfully');
+                    document.getElementById('approvalRequestId').value = '';
+                    document.getElementById('decisionMessage').value = '';
+                }
+            } catch (error) {
+                handleApiError(error, 'declining request');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function viewPendingQueue(event) {
+            const btn = event.target;
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/finance/pending`, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('queueResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'fetching pending queue');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function viewQueueStats(event) {
+            const btn = event.target;
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/finance/queue-stats`, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('queueResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'fetching queue stats');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function checkApprovalStatus(event) {
+            const requestId = document.getElementById('approvalRequestId').value;
+            if (!requestId) {
+                showError('Please enter a Request ID');
+                return;
+            }
+
+            const btn = event.target;
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/finance/status/${requestId}`, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('queueResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'checking approval status');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function viewAllFinanceRequests(event) {
+            const btn = event.target;
+            try {
+                showLoading(btn);
+                const limit = document.getElementById('financeLimit').value;
+                const status = document.getElementById('financeStatus').value;
+                let url = `${BASE_URL}/api/finance/requests?limit=${limit}`;
+                if (status) {
+                    url += `&status=${status}`;
+                }
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('allRequestsResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'fetching all requests');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function loadSimulatorConfig() {
+            try {
+                // Get enabling simulator config
+                const enablingResponse = await fetch('http://localhost:9000/api/enabling/config', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const enablingData = await enablingResponse.json();
+
+                if (enablingResponse.ok) {
+                    // Update display
+                    document.getElementById('currentThreshold').textContent = '£' + parseFloat(enablingData.approvalThreshold).toFixed(2);
+                    document.getElementById('currentDelay').textContent = enablingData.processingDelayMs + ' ms';
+                    document.getElementById('currentAutoApprove').textContent = enablingData.autoApproveEnabled ? 'Yes' : 'No';
+
+                    // Update form fields
+                    document.getElementById('approvalThreshold').value = enablingData.approvalThreshold;
+                    document.getElementById('processingDelay').value = enablingData.processingDelayMs;
+                    document.getElementById('autoApproveEnabled').value = enablingData.autoApproveEnabled.toString();
+                }
+            } catch (error) {
+                console.error('Error loading simulator config:', error);
+                document.getElementById('currentThreshold').textContent = 'Error';
+                document.getElementById('currentDelay').textContent = 'Error';
+                document.getElementById('currentAutoApprove').textContent = 'Error';
+            }
+        }
+
+        async function updateSimulatorConfig(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            try {
+                showLoading(btn);
+
+                // Update enabling simulator config
+                const configUpdate = {
+                    approvalThreshold: parseFloat(document.getElementById('approvalThreshold').value),
+                    processingDelayMs: parseInt(document.getElementById('processingDelay').value),
+                    autoApproveEnabled: document.getElementById('autoApproveEnabled').value === 'true'
+                };
+
+                const response = await fetch('http://localhost:9000/api/enabling/config', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configUpdate)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResponse('configResponse', {
+                        success: true,
+                        message: 'Configuration updated successfully',
+                        data: data
+                    }, false);
+
+                    // Refresh the displayed config
+                    loadSimulatorConfig();
+                    showSuccess('Configuration updated successfully');
+                } else {
+                    showResponse('configResponse', {
+                        success: false,
+                        message: 'Failed to update configuration',
+                        data: data
+                    }, true);
+                }
+            } catch (error) {
+                handleApiError(error, 'updating simulator configuration');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+    </script>
+</body>
+
+</html>

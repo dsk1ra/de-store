@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 public class InventoryUpdateRequest {
     private Integer quantity;
     private TransactionType transactionType;
+    private Integer lowStockThreshold;
 }

@@ -159,6 +159,15 @@ services:
     container_name: destore-enabling-simulator
     ports:
       - "9000:9000"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: destore
+      SPRING_RABBITMQ_PASSWORD: destore123
+      FINANCE_SERVICE_URL: http://finance-service:8084
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - destore-network
     restart: unless-stopped

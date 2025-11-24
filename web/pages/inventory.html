@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DE-Store - Inventory Service</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-left">
+            <button class="back-btn" onclick="goToDashboard()">← Dashboard</button>
+            <h1>Inventory Service</h1>
+        </div>
+        <div class="user-info">
+            <span class="user-name" id="userName">Loading...</span>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-section">
+            <h2>Manage Inventory</h2>
+            <p class="section-description">Create and update inventory records</p>
+
+            <form class="form-grid" onsubmit="createInventory(event)">
+                <div class="form-group">
+                    <label for="invProductCode">Product Code</label>
+                    <input type="text" id="invProductCode" placeholder="Product Code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="invQuantity">Quantity</label>
+                    <input type="number" id="invQuantity" placeholder="Quantity" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="invThreshold">Low Stock Threshold</label>
+                    <input type="number" id="invThreshold" placeholder="Threshold" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="invStoreId">Store ID</label>
+                    <input type="text" id="invStoreId" placeholder="Store ID" required>
+                </div>
+
+                <div class="form-actions full-width">
+                    <button type="submit" class="btn btn-success">Create Inventory</button>
+                    <button type="button" class="btn btn-primary" onclick="getInventory(event)">Get Inventory</button>
+                    <button type="button" class="btn btn-secondary" onclick="updateInventory(event)">Update
+                        Quantity</button>
+                </div>
+            </form>
+
+            <div id="inventoryResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>Check Low Stock</h2>
+            <p class="section-description">View items with low inventory levels</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="lowStockStoreId">Store ID (Optional)</label>
+                    <input type="text" id="lowStockStoreId" placeholder="Filter by Store ID">
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" onclick="checkLowStock(event)">Check Low Stock</button>
+                </div>
+            </div>
+
+            <div id="lowStockResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>Reserve Items</h2>
+            <p class="section-description">Reserve inventory for orders</p>
+
+            <form class="form-grid" onsubmit="reserveItems(event)">
+                <div class="form-group">
+                    <label for="reserveProductCode">Product Code</label>
+                    <input type="text" id="reserveProductCode" placeholder="Product Code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="reserveQuantity">Quantity</label>
+                    <input type="number" id="reserveQuantity" placeholder="Quantity" min="1" required>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="reservationNotes">Notes (Optional)</label>
+                    <input type="text" id="reservationNotes" placeholder="Optional notes for this reservation">
+                </div>
+
+                <div class="form-actions full-width">
+                    <button type="submit" class="btn btn-primary">Reserve Items</button>
+                </div>
+            </form>
+
+            <div id="reserveResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>View All Inventory</h2>
+            <p class="section-description">Browse all inventory records</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="inventoryLimit">Limit</label>
+                    <select id="inventoryLimit">
+                        <option value="10">10 records</option>
+                        <option value="50">50 records</option>
+                        <option value="100">100 records</option>
+                        <option value="500">500 records</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="storeIdFilter">Store ID Filter (Optional)</label>
+                    <input type="text" id="storeIdFilter" placeholder="Filter by Store ID">
+                </div>
+
+                <div class="form-actions full-width">
+                    <button class="btn btn-primary" onclick="viewAllInventory(event)">View All Inventory</button>
+                </div>
+            </div>
+
+            <div id="allInventoryResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>Manage Reservations</h2>
+            <p class="section-description">Process, view, and manage inventory reservations</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="reservationId">Reservation ID</label>
+                    <input type="text" id="reservationId" placeholder="Enter Reservation ID">
+                </div>
+
+                <div class="form-actions full-width">
+                    <button class="btn btn-success" onclick="confirmReservation(event)">Confirm Reservation</button>
+                    <button class="btn btn-danger" onclick="cancelReservation(event)">Cancel Reservation</button>
+                    <button class="btn btn-secondary" onclick="getReservationDetails(event)">Get Details</button>
+                </div>
+            </div>
+
+            <div id="reservationResponse" class="response-area" style="display:none;"></div>
+        </div>
+
+        <div class="page-section">
+            <h2>View All Reservations</h2>
+            <p class="section-description">Browse all inventory reservations</p>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="reservationStatus">Status Filter</label>
+                    <select id="reservationStatus">
+                        <option value="">All Statuses</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="CONFIRMED">Confirmed</option>
+                        <option value="CANCELLED">Cancelled</option>
+                        <option value="EXPIRED">Expired</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reservationProductCode">Product Code (Optional)</label>
+                    <input type="text" id="reservationProductCode" placeholder="Filter by Product Code">
+                </div>
+
+                <div class="form-actions full-width">
+                    <button class="btn btn-primary" onclick="viewAllReservations(event)">View All Reservations</button>
+                    <button class="btn btn-warning" onclick="releaseExpiredReservations(event)">Release Expired
+                        Reservations</button>
+                </div>
+            </div>
+
+            <div id="allReservationsResponse" class="response-area" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/utils.js"></script>
+    <script>
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                initializePageHeader();
+            }
+        });
+
+        async function createInventory(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/inventory`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        productCode: document.getElementById('invProductCode').value,
+                        quantity: parseInt(document.getElementById('invQuantity').value),
+                        lowStockThreshold: parseInt(document.getElementById('invThreshold').value),
+                        storeId: document.getElementById('invStoreId').value
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('inventoryResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Inventory created successfully');
+                }
+            } catch (error) {
+                handleApiError(error, 'creating inventory');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function getInventory(event) {
+            const btn = event.target;
+            const productCode = document.getElementById('invProductCode').value;
+
+            if (!productCode) {
+                showError('Please enter a Product Code');
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/inventory/${productCode}`, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('inventoryResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'fetching inventory');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function updateInventory(event) {
+            const btn = event.target;
+            const productCode = document.getElementById('invProductCode').value;
+            const quantity = document.getElementById('invQuantity').value;
+            const threshold = document.getElementById('invThreshold').value;
+
+            if (!productCode || !quantity) {
+                showError('Please enter Product Code and Quantity');
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const requestBody = {
+                    quantity: parseInt(quantity),
+                    transactionType: 'ADJUSTMENT'
+                };
+
+                // Include threshold if provided
+                if (threshold) {
+                    requestBody.lowStockThreshold = parseInt(threshold);
+                }
+
+                const response = await fetch(`${BASE_URL}/api/inventory/${productCode}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                showResponse('inventoryResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Inventory updated successfully');
+                }
+            } catch (error) {
+                handleApiError(error, 'updating inventory');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function checkLowStock(event) {
+            const btn = event.target;
+            const storeId = document.getElementById('lowStockStoreId').value;
+
+            try {
+                showLoading(btn);
+                let url = `${BASE_URL}/api/inventory/low-stock`;
+                if (storeId) {
+                    url += `?storeId=${encodeURIComponent(storeId)}`;
+                }
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('lowStockResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'checking low stock');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function reserveItems(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            try {
+                showLoading(btn);
+                const productCode = document.getElementById('reserveProductCode').value;
+                const notes = document.getElementById('reservationNotes').value;
+                const requestBody = {
+                    quantity: parseInt(document.getElementById('reserveQuantity').value)
+                };
+                // Only include notes if provided
+                if (notes && notes.trim()) {
+                    requestBody.notes = notes;
+                }
+
+                const response = await fetch(`${BASE_URL}/api/inventory/${productCode}/reserve`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                showResponse('reserveResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Items reserved successfully');
+                    event.target.reset();
+                }
+            } catch (error) {
+                handleApiError(error, 'reserving items');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function viewAllInventory(event) {
+            const btn = event.target;
+
+            try {
+                showLoading(btn);
+                const limit = document.getElementById('inventoryLimit').value;
+                const storeId = document.getElementById('storeIdFilter').value;
+
+                let url = `${BASE_URL}/api/inventory?limit=${limit}`;
+                if (storeId) {
+                    url += `&storeId=${encodeURIComponent(storeId)}`;
+                }
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('allInventoryResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'fetching all inventory');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function confirmReservation(event) {
+            const btn = event.target;
+            const reservationId = document.getElementById('reservationId').value;
+
+            if (!reservationId) {
+                showError('Please enter a Reservation ID');
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/inventory/reservations/confirm`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        reservationId: reservationId,
+                        notes: 'Confirmed via UI'
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('reservationResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Reservation confirmed successfully');
+                    document.getElementById('reservationId').value = '';
+                }
+            } catch (error) {
+                handleApiError(error, 'confirming reservation');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function cancelReservation(event) {
+            const btn = event.target;
+            const reservationId = document.getElementById('reservationId').value;
+
+            if (!reservationId) {
+                showError('Please enter a Reservation ID');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to cancel this reservation?')) {
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/inventory/reservations/cancel`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        reservationId: reservationId,
+                        reason: 'Cancelled via UI'
+                    })
+                });
+
+                const data = await response.json();
+                showResponse('reservationResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess('Reservation cancelled successfully');
+                    document.getElementById('reservationId').value = '';
+                }
+            } catch (error) {
+                handleApiError(error, 'cancelling reservation');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function getReservationDetails(event) {
+            const btn = event.target;
+            const reservationId = document.getElementById('reservationId').value;
+
+            if (!reservationId) {
+                showError('Please enter a Reservation ID');
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/inventory/reservations/${reservationId}`, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('reservationResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'fetching reservation details');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function viewAllReservations(event) {
+            const btn = event.target;
+
+            try {
+                showLoading(btn);
+                const status = document.getElementById('reservationStatus').value;
+                const productCode = document.getElementById('reservationProductCode').value;
+
+                let url = `${BASE_URL}/api/inventory/reservations?`;
+                const params = [];
+
+                if (status) {
+                    params.push(`status=${encodeURIComponent(status)}`);
+                }
+                if (productCode) {
+                    params.push(`productCode=${encodeURIComponent(productCode)}`);
+                }
+
+                url += params.join('&');
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('allReservationsResponse', data, !response.ok);
+            } catch (error) {
+                handleApiError(error, 'fetching reservations');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+
+        async function releaseExpiredReservations(event) {
+            const btn = event.target;
+
+            if (!confirm('This will release all expired reservations. Continue?')) {
+                return;
+            }
+
+            try {
+                showLoading(btn);
+                const response = await fetch(`${BASE_URL}/api/inventory/reservations/release-expired`, {
+                    method: 'POST',
+                    headers: getHeaders()
+                });
+
+                const data = await response.json();
+                showResponse('allReservationsResponse', data, !response.ok);
+
+                if (data.success) {
+                    showSuccess(`Released ${data.data.releasedCount} expired reservation(s)`);
+                }
+            } catch (error) {
+                handleApiError(error, 'releasing expired reservations');
+            } finally {
+                hideLoading(btn);
+            }
+        }
+    </script>
+</body>
+
+</html>
