@@ -1,0 +1,340 @@
+services:
+  # PostgreSQL Database for Auth Service
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: destore-postgres-auth
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: destore
+      POSTGRES_PASSWORD: destore123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U destore -d auth_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Pricing Service
+  postgres-pricing:
+    image: postgres:15-alpine
+    container_name: destore-postgres-pricing
+    environment:
+      POSTGRES_DB: pricing_db
+      POSTGRES_USER: destore
+      POSTGRES_PASSWORD: destore123
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-pricing-data:/var/lib/postgresql/data
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U destore -d pricing_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Inventory Service
+  postgres-inventory:
+    image: postgres:15-alpine
+    container_name: destore-postgres-inventory
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: destore
+      POSTGRES_PASSWORD: destore123
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-inventory-data:/var/lib/postgresql/data
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U destore -d inventory_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Finance Service
+  postgres-finance:
+    image: postgres:15-alpine
+    container_name: destore-postgres-finance
+    environment:
+      POSTGRES_DB: finance_db
+      POSTGRES_USER: destore
+      POSTGRES_PASSWORD: destore123
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-finance-data:/var/lib/postgresql/data
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U destore -d finance_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Notification Service
+  postgres-notification:
+    image: postgres:15-alpine
+    container_name: destore-postgres-notification
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: destore
+      POSTGRES_PASSWORD: destore123
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres-notification-data:/var/lib/postgresql/data
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U destore -d notification_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: destore-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: destore
+      RABBITMQ_DEFAULT_PASS: destore123
+    ports:
+      - "5672:5672" # AMQP port
+      - "15672:15672" # Management UI
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Eureka Service Discovery
+  eureka-server:
+    build:
+      context: ../eureka-server
+      dockerfile: Dockerfile
+    container_name: destore-eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Zipkin Distributed Tracing
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: destore-zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+  # Authentication Service
+  auth-service:
+    build:
+      context: ../auth-service
+      dockerfile: Dockerfile
+    container_name: destore-auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: destore
+      SPRING_DATASOURCE_PASSWORD: destore123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+  # Pricing Service
+  pricing-service:
+    build:
+      context: ../pricing-service
+      dockerfile: Dockerfile
+    container_name: destore-pricing-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-pricing:5432/pricing_db
+      SPRING_DATASOURCE_USERNAME: destore
+      SPRING_DATASOURCE_PASSWORD: destore123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-pricing:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+  # Inventory Service
+  inventory-service:
+    build:
+      context: ../inventory-service
+      dockerfile: Dockerfile
+    container_name: destore-inventory-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-inventory:5432/inventory_db
+      SPRING_DATASOURCE_USERNAME: destore
+      SPRING_DATASOURCE_PASSWORD: destore123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: destore
+      SPRING_RABBITMQ_PASSWORD: destore123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-inventory:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+  # Finance Integration Service
+  finance-service:
+    build:
+      context: ../finance-service
+      dockerfile: Dockerfile
+    container_name: destore-finance-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-finance:5432/finance_db
+      SPRING_DATASOURCE_USERNAME: destore
+      SPRING_DATASOURCE_PASSWORD: destore123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: destore
+      SPRING_RABBITMQ_PASSWORD: destore123
+      ENABLING_SERVICE_URL: http://external-finance-service:9000
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-finance:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ../notification-service
+      dockerfile: Dockerfile
+    container_name: destore-notification-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notification:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: destore
+      SPRING_DATASOURCE_PASSWORD: destore123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: destore
+      SPRING_RABBITMQ_PASSWORD: destore123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-notification:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+  # External Finance Service
+  external-finance-service:
+    build:
+      context: ../external-finance-service
+      dockerfile: Dockerfile
+    container_name: destore-external-finance-service
+    ports:
+      - "9000:9000"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: destore
+      SPRING_RABBITMQ_PASSWORD: destore123
+      FINANCE_SERVICE_URL: http://finance-service:8084
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ../api-gateway
+      dockerfile: Dockerfile
+    container_name: destore-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8081
+      PRICING_SERVICE_URL: http://pricing-service:8082
+      INVENTORY_SERVICE_URL: http://inventory-service:8083
+      FINANCE_SERVICE_URL: http://finance-service:8084
+      NOTIFICATION_SERVICE_URL: http://notification-service:8085
+    depends_on:
+      - auth-service
+      - pricing-service
+      - inventory-service
+      - finance-service
+      - notification-service
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+volumes:
+  postgres-auth-data:
+  postgres-pricing-data:
+  postgres-inventory-data:
+  postgres-finance-data:
+  postgres-notification-data:
+
+
+networks:
+  destore-network:
+    driver: bridge

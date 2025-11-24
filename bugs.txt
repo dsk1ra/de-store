@@ -1,5 +1,0 @@
-When trying to remove a product, there is a 405 error - method not allowed. Same for update.
-Cannot find the productusing search
-Cannot create a promotion
-Cannot check low stock items for stores
-When clicking "Test all APIs", here is the error as alert: Error during testing: Cannot read properties of undefined (reading 'target')

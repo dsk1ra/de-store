@@ -18,6 +18,34 @@ spring:
 server:
   port: 8081
 
+# Service Discovery
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# Distributed Tracing
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
 jwt:
   secret: MySecretKeyForDEStoreApplicationMustBe256BitsOrLongerForHS256Algorithm
   expiration: 3600000 # 1 hour in milliseconds
@@ -26,3 +54,5 @@ logging:
   level:
     com.destore: DEBUG
     org.springframework.security: DEBUG
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

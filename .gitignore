@@ -86,3 +86,7 @@ desktop.ini
 *.db
 *.sqlite
 *.sqlite3
+
+# Database backups
+backup_*.sql
+*.dump

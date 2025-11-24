@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: external-finance-service
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: destore
+    password: destore123
+
+server:
+  port: 9000
+
+# Service Discovery
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# Distributed Tracing
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+finance:
+  service:
+    url: http://localhost:8084
+
+enabling:
+  approval:
+    threshold: 50000.00
+    processing-delay-ms: 500
+    auto-approve-enabled: true
+
+rabbitmq:
+  exchange:
+    finance-approval: finance_approval_exchange
+  queue:
+    pending-approval: pending_approval_queue
+    approval-decision: approval_decision_queue
+  routing-key:
+    pending-approval: finance.pending
+    approval-decision: finance.decision
+
+logging:
+  level:
+    com.destore: DEBUG
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

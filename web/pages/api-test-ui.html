@@ -1223,7 +1223,7 @@
                 showResponse('financeResponse', data, !response.ok);
 
                 if (data.success) {
-                    alert('Approval decision queued! The request will be processed and the enabling system will be contacted.\nCheck status after a few seconds.');
+                    alert('Approval decision queued! The request will be processed and the external finance system will be contacted.\nCheck status after a few seconds.');
                 }
             } catch (error) {
                 showResponse('financeResponse', { error: error.message }, true);

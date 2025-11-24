@@ -18,9 +18,9 @@ import java.util.List;
 @RequestMapping("/api/pricing")
 @RequiredArgsConstructor
 public class PricingController {
-    
+
     private final PricingService pricingService;
-    
+
     @PostMapping("/products")
     public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody ProductRequest request) {
         try {
@@ -32,7 +32,7 @@ public class PricingController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @GetMapping("/products/{productCode}")
     public ResponseEntity<ApiResponse<Product>> getProduct(@PathVariable String productCode) {
         try {
@@ -44,7 +44,7 @@ public class PricingController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @PutMapping("/products/{productCode}")
     public ResponseEntity<ApiResponse<Product>> updateProduct(
             @PathVariable String productCode,
@@ -58,7 +58,7 @@ public class PricingController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @DeleteMapping("/products/{productCode}")
     public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable String productCode) {
         try {
@@ -70,7 +70,7 @@ public class PricingController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @GetMapping("/products")
     public ResponseEntity<ApiResponse<List<Product>>> getAllProducts() {
         try {
@@ -82,7 +82,7 @@ public class PricingController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @GetMapping("/products/search")
     public ResponseEntity<ApiResponse<List<Product>>> searchProducts(@RequestParam String q) {
         try {
@@ -94,12 +94,13 @@ public class PricingController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @PostMapping("/promotions")
-    public ResponseEntity<ApiResponse<Promotion>> createPromotion(@RequestBody PromotionRequest request) {
+    public ResponseEntity<ApiResponse<PromotionResponse>> createPromotion(@RequestBody PromotionRequest request) {
         try {
             Promotion promotion = pricingService.createPromotion(request);
-            return ResponseEntity.ok(ApiResponse.success("Promotion created successfully", promotion));
+            PromotionResponse response = PromotionResponse.fromEntity(promotion);
+            return ResponseEntity.ok(ApiResponse.success("Promotion created successfully", response));
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             log.error("Database constraint violation while creating promotion", e);
             String errorMessage = "Promotion with code '" + request.getPromotionCode() + "' already exists";
@@ -123,19 +124,22 @@ public class PricingController {
                     .body(ApiResponse.error(message != null ? message : "Failed to create promotion"));
         }
     }
-    
+
     @GetMapping("/promotions")
-    public ResponseEntity<ApiResponse<List<Promotion>>> getActivePromotions() {
+    public ResponseEntity<ApiResponse<List<PromotionResponse>>> getActivePromotions() {
         try {
             List<Promotion> promotions = pricingService.getActivePromotions();
-            return ResponseEntity.ok(ApiResponse.success(promotions));
+            List<PromotionResponse> responses = promotions.stream()
+                    .map(PromotionResponse::fromEntity)
+                    .toList();
+            return ResponseEntity.ok(ApiResponse.success(responses));
         } catch (Exception e) {
             log.error("Failed to get promotions", e);
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @PostMapping("/calculate")
     public ResponseEntity<ApiResponse<PriceCalculationResponse>> calculatePrice(
             @RequestBody PriceCalculationRequest request) {
@@ -148,7 +152,7 @@ public class PricingController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Pricing Service is healthy");

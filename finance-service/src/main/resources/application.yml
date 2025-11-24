@@ -14,13 +14,70 @@ spring:
     port: 5672
     username: destore
     password: destore123
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+      client:
+        config:
+          external-finance-service:
+            connect-timeout: 5000
+            read-timeout: 10000
 
 server:
   port: 8084
 
+# Service Discovery
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      external-finance-service:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+  retry:
+    instances:
+      external-finance-service:
+        max-attempts: 3
+        wait-duration: 1000
+  timelimiter:
+    instances:
+      external-finance-service:
+        timeout-duration: 10s
+
+# Distributed Tracing
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,circuitbreakers
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
 enabling:
   service:
-    url: http://localhost:8086
+    url: http://localhost:9000
 
 rabbitmq:
   exchange:
@@ -37,3 +94,5 @@ rabbitmq:
 logging:
   level:
     com.destore: DEBUG
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

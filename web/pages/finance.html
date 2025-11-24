@@ -88,8 +88,8 @@
         </div>
 
         <div class="page-section">
-            <h2>Enabling Simulator Configuration</h2>
-            <p class="section-description">View and configure the external enabling system simulator</p>
+            <h2>External Finance Service Configuration</h2>
+            <p class="section-description">View and configure the external finance system simulator</p>
 
             <div style="margin-bottom: 20px;">
                 <h3>Current Settings</h3>
@@ -372,8 +372,8 @@
 
         async function loadSimulatorConfig() {
             try {
-                // Get enabling simulator config
-                const enablingResponse = await fetch('http://localhost:9000/api/enabling/config', {
+                // Get external finance service config
+                const enablingResponse = await fetch('http://localhost:9000/api/external-finance/config', {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -405,14 +405,14 @@
             try {
                 showLoading(btn);
 
-                // Update enabling simulator config
-                const configUpdate = {
+                // Update external finance service config
+                const config = {
                     approvalThreshold: parseFloat(document.getElementById('approvalThreshold').value),
                     processingDelayMs: parseInt(document.getElementById('processingDelay').value),
                     autoApproveEnabled: document.getElementById('autoApproveEnabled').value === 'true'
                 };
 
-                const response = await fetch('http://localhost:9000/api/enabling/config', {
+                const response = await fetch('http://localhost:9000/api/external-finance/config', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(configUpdate)

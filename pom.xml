@@ -28,16 +28,18 @@
         <spring-cloud.version>2024.0.0</spring-cloud.version>
         <jwt.version>0.12.3</jwt.version>
         <lombok.version>1.18.30</lombok.version>
+        <resilience4j.version>2.1.0</resilience4j.version>
     </properties>
 
     <modules>
         <module>common</module>
+        <module>eureka-server</module>
         <module>auth-service</module>
         <module>pricing-service</module>
         <module>inventory-service</module>
         <module>finance-service</module>
         <module>notification-service</module>
-        <module>enabling-simulator</module>
+        <module>external-finance-service</module>
         <module>api-gateway</module>
     </modules>
 
@@ -77,6 +79,28 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <!-- Resilience4j -->
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-spring-boot3</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-circuitbreaker</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-retry</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-timelimiter</artifactId>
+                <version>${resilience4j.version}</version>
             </dependency>
 
             <!-- Internal Dependencies -->
