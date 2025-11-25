@@ -1,1 +1,11 @@
-docker/docker-compose.yml
+version: '3.8'
+
+# This is a convenience docker-compose file that includes docker/docker-compose.yml
+# To run all services, use: docker-compose -f docker/docker-compose.yml up -d
+
+services:
+  # Placeholder - actual services are defined in docker/docker-compose.yml
+  # Run with: docker-compose -f docker/docker-compose.yml up -d
+  placeholder:
+    image: alpine:latest
+    command: echo "Please use 'docker-compose -f docker/docker-compose.yml up -d' to start services"

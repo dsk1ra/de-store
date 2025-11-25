@@ -1,7 +1,7 @@
-# Multi-stage build for External Finance Service
+# Multi-stage build for Finance Approval Automation Service
 FROM eclipse-temurin:17-jdk AS builder
 WORKDIR /app
-COPY target/external-finance-service-1.0.0.jar app.jar
+COPY target/finance-approval-automation-1.0.0.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 FROM eclipse-temurin:17-jre

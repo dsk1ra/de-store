@@ -1,7 +1,7 @@
-package com.destore.externalfinance.listener;
+package com.destore.financeapproval.listener;
 
-import com.destore.externalfinance.dto.PendingApprovalMessage;
-import com.destore.externalfinance.service.ExternalFinanceService;
+import com.destore.financeapproval.dto.PendingApprovalMessage;
+import com.destore.financeapproval.service.FinanceApprovalAutomationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PendingApprovalListener {
     
-    private final ExternalFinanceService externalFinanceService;
+    private final FinanceApprovalAutomationService financeApprovalAutomationService;
     
     /**
      * Listens to the pending approval queue and processes requests when auto-approve is enabled.
@@ -28,13 +28,13 @@ public class PendingApprovalListener {
         log.info("Request details - Customer: {}, Amount: £{}, Purpose: {}", 
                 message.getCustomerId(), message.getAmount(), message.getPurpose());
         
-        if (!externalFinanceService.isAutoApproveEnabled()) {
+        if (!financeApprovalAutomationService.isAutoApproveEnabled()) {
             log.info("Auto-approve is disabled. Request {} will remain in pending state until manually processed.", 
                     message.getRequestId());
             return;
         }
         
         log.info("Auto-approve is enabled. Processing request {} from queue...", message.getRequestId());
-        externalFinanceService.processQueuedApproval(message);
+        financeApprovalAutomationService.processQueuedApproval(message);
     }
 }

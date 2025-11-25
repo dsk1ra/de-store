@@ -39,7 +39,7 @@
         <module>inventory-service</module>
         <module>finance-service</module>
         <module>notification-service</module>
-        <module>external-finance-service</module>
+        <module>finance-approval-automation</module>
         <module>api-gateway</module>
     </modules>
 

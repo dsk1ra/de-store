@@ -15,10 +15,9 @@ public class ApprovalQueueListener {
     private final FinanceIntegrationService financeIntegrationService;
 
     // NOTE: The pending-approval queue is now consumed by the
-    // external-finance-service
-    // When auto-approve is enabled, the simulator will process requests from the
-    // queue
-    // and send decisions back to the approval-decision queue
+    // finance-approval-automation service
+    // When auto-approve is enabled, the automation service will process requests from the
+    // queue and send decisions back to the approval-decision queue
 
     @RabbitListener(queues = "${rabbitmq.queue.approval-decision}")
     public void handleApprovalDecision(ApprovalDecisionMessage decision) {

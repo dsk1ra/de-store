@@ -1,8 +1,8 @@
-package com.destore.externalfinance.controller;
+package com.destore.financeapproval.controller;
 
-import com.destore.externalfinance.dto.ApprovalRequest;
-import com.destore.externalfinance.dto.ApprovalResponse;
-import com.destore.externalfinance.service.ExternalFinanceService;
+import com.destore.financeapproval.dto.ApprovalRequest;
+import com.destore.financeapproval.dto.ApprovalResponse;
+import com.destore.financeapproval.service.FinanceApprovalAutomationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,13 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/external-finance")
+@RequestMapping("/api/finance-approval")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")
-public class ExternalFinanceController {
+public class FinanceApprovalAutomationController {
     
-    private final ExternalFinanceService externalFinanceService;
+    private final FinanceApprovalAutomationService financeApprovalAutomationService;
     private final RestTemplate restTemplate;
     
     @Value("${finance.service.url}")
@@ -30,47 +30,47 @@ public class ExternalFinanceController {
     @PostMapping("/approve")
     public ResponseEntity<ApprovalResponse> approveRequest(@RequestBody ApprovalRequest request) {
         log.info("Received approval request: {}", request.getRequestId());
-        ApprovalResponse response = externalFinanceService.processApproval(request);
+        ApprovalResponse response = financeApprovalAutomationService.processApproval(request);
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-        return ResponseEntity.ok("External Finance Service is running");
+        return ResponseEntity.ok("Finance Approval Automation Service is running");
     }
     
     @GetMapping("/config")
     public ResponseEntity<Map<String, Object>> getConfig() {
         Map<String, Object> config = new HashMap<>();
-        config.put("approvalThreshold", externalFinanceService.getApprovalThreshold());
-        config.put("processingDelayMs", externalFinanceService.getProcessingDelayMs());
-        config.put("autoApproveEnabled", externalFinanceService.isAutoApproveEnabled());
-        log.info("Retrieved external finance service configuration");
+        config.put("approvalThreshold", financeApprovalAutomationService.getApprovalThreshold());
+        config.put("processingDelayMs", financeApprovalAutomationService.getProcessingDelayMs());
+        config.put("autoApproveEnabled", financeApprovalAutomationService.isAutoApproveEnabled());
+        log.info("Retrieved finance approval automation service configuration");
         return ResponseEntity.ok(config);
     }
     
     @PutMapping("/config")
     public ResponseEntity<Map<String, Object>> updateConfig(@RequestBody Map<String, Object> configUpdates) {
-        log.info("Updating external finance service configuration: {}", configUpdates);
+        log.info("Updating finance approval automation service configuration: {}", configUpdates);
         
         if (configUpdates.containsKey("approvalThreshold")) {
             Object thresholdValue = configUpdates.get("approvalThreshold");
             BigDecimal threshold = new BigDecimal(thresholdValue.toString());
-            externalFinanceService.setApprovalThreshold(threshold);
+            financeApprovalAutomationService.setApprovalThreshold(threshold);
             log.info("Updated approval threshold to: {}", threshold);
         }
         
         if (configUpdates.containsKey("processingDelayMs")) {
             Object delayValue = configUpdates.get("processingDelayMs");
             long delay = ((Number) delayValue).longValue();
-            externalFinanceService.setProcessingDelayMs(delay);
+            financeApprovalAutomationService.setProcessingDelayMs(delay);
             log.info("Updated processing delay to: {} ms", delay);
         }
         
         if (configUpdates.containsKey("autoApproveEnabled")) {
-            boolean wasEnabled = externalFinanceService.isAutoApproveEnabled();
+            boolean wasEnabled = financeApprovalAutomationService.isAutoApproveEnabled();
             boolean enabled = (Boolean) configUpdates.get("autoApproveEnabled");
-            externalFinanceService.setAutoApproveEnabled(enabled);
+            financeApprovalAutomationService.setAutoApproveEnabled(enabled);
             log.info("Updated auto-approve enabled to: {}", enabled);
             
             // If auto-approve was just enabled, trigger reprocessing of pending requests
@@ -94,14 +94,14 @@ public class ExternalFinanceController {
         }
         
         // Persist the configuration changes
-        externalFinanceService.persistConfiguration();
+        financeApprovalAutomationService.persistConfiguration();
         log.info("Configuration changes persisted to file");
         
         // Return updated config
         Map<String, Object> config = new HashMap<>();
-        config.put("approvalThreshold", externalFinanceService.getApprovalThreshold());
-        config.put("processingDelayMs", externalFinanceService.getProcessingDelayMs());
-        config.put("autoApproveEnabled", externalFinanceService.isAutoApproveEnabled());
+        config.put("approvalThreshold", financeApprovalAutomationService.getApprovalThreshold());
+        config.put("processingDelayMs", financeApprovalAutomationService.getProcessingDelayMs());
+        config.put("autoApproveEnabled", financeApprovalAutomationService.isAutoApproveEnabled());
         config.put("message", "Configuration updated and persisted successfully");
         
         return ResponseEntity.ok(config);

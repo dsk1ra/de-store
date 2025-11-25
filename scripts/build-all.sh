@@ -70,7 +70,7 @@ services=(
     "inventory-service"
     "finance-service"
     "notification-service"
-    "external-finance-service"
+    "finance-approval-automation"
     "api-gateway"
 )
 

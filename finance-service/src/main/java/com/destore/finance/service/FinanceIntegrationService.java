@@ -288,10 +288,10 @@ public class FinanceIntegrationService {
     }
 
     /**
-     * Calls external finance service with circuit breaker and retry protection
+     * Calls finance approval automation service with circuit breaker and retry protection
      */
-    @CircuitBreaker(name = "external-finance-service", fallbackMethod = "externalFinanceFallback")
-    @Retry(name = "external-finance-service")
+    @CircuitBreaker(name = "finance-approval-automation", fallbackMethod = "externalFinanceFallback")
+    @Retry(name = "finance-approval-automation")
     private EnablingResponse callExternalFinanceService(EnablingRequest request) {
         log.info("Calling external finance service for request: {}", request.getRequestId());
         return externalFinanceClient.approveRequest(request);

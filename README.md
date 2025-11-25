@@ -371,7 +371,7 @@ de-store/
 ├── auth-service/          # Authentication & Authorization
 ├── common/                # Shared DTOs, exceptions, utilities
 ├── eureka-server/         # Service Discovery
-├── external-finance-service/  # Finance Approval Simulator
+├── finance-approval-automation/  # Finance Approval Automation Service
 ├── finance-service/       # Finance Integration Service
 ├── inventory-service/     # Inventory Management
 ├── notification-service/  # Event-Driven Notifications

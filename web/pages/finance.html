@@ -387,7 +387,7 @@
         async function loadSimulatorConfig() {
             try {
                 // Get external finance service config
-                const enablingResponse = await fetch('http://localhost:9000/api/external-finance/config', {
+                const enablingResponse = await fetch('http://localhost:9000/api/finance-approval/config', {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -426,7 +426,7 @@
                     autoApproveEnabled: document.getElementById('autoApproveEnabled').value === 'true'
                 };
 
-                const response = await fetch('http://localhost:9000/api/external-finance/config', {
+                const response = await fetch('http://localhost:9000/api/finance-approval/config', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(configUpdate)

@@ -1,10 +1,10 @@
-package com.destore.externalfinance.service;
+package com.destore.financeapproval.service;
 
-import com.destore.externalfinance.config.ConfigurationPersistence;
-import com.destore.externalfinance.dto.ApprovalRequest;
-import com.destore.externalfinance.dto.ApprovalResponse;
-import com.destore.externalfinance.dto.PendingApprovalMessage;
-import com.destore.externalfinance.dto.ApprovalDecisionMessage;
+import com.destore.financeapproval.config.ConfigurationPersistence;
+import com.destore.financeapproval.dto.ApprovalRequest;
+import com.destore.financeapproval.dto.ApprovalResponse;
+import com.destore.financeapproval.dto.PendingApprovalMessage;
+import com.destore.financeapproval.dto.ApprovalDecisionMessage;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +19,7 @@ import java.util.Properties;
 
 @Service
 @Slf4j
-public class ExternalFinanceService {
+public class FinanceApprovalAutomationService {
     
     private final ConfigurationPersistence configurationPersistence;
     private final RabbitTemplate rabbitTemplate;
@@ -45,7 +45,7 @@ public class ExternalFinanceService {
     @Value("${rabbitmq.routing-key.approval-decision}")
     private String approvalDecisionRoutingKey;
     
-    public ExternalFinanceService(ConfigurationPersistence configurationPersistence, RabbitTemplate rabbitTemplate) {
+    public FinanceApprovalAutomationService(ConfigurationPersistence configurationPersistence, RabbitTemplate rabbitTemplate) {
         this.configurationPersistence = configurationPersistence;
         this.rabbitTemplate = rabbitTemplate;
     }
@@ -70,7 +70,7 @@ public class ExternalFinanceService {
             log.info("Loaded persisted autoApproveEnabled: {}", autoApproveEnabled);
         }
         
-        log.info("Enabling Simulator initialized with configuration:");
+        log.info("Finance Approval Automation Service initialized with configuration:");
         log.info("  - Approval Threshold: £{}", approvalThreshold);
         log.info("  - Processing Delay: {} ms", processingDelayMs);
         log.info("  - Auto-Approve Enabled: {}", autoApproveEnabled);
@@ -155,11 +155,11 @@ public class ExternalFinanceService {
         String decision;
         if (approved) {
             decision = "APPROVED";
-            reason = String.format("Approved by simulator - amount £%.2f is within threshold of £%.2f", 
+            reason = String.format("Approved by automation - amount £%.2f is within threshold of £%.2f", 
                     message.getAmount(), approvalThreshold);
         } else {
             decision = "DECLINED";
-            reason = String.format("Rejected by simulator - amount £%.2f exceeds threshold of £%.2f", 
+            reason = String.format("Rejected by automation - amount £%.2f exceeds threshold of £%.2f", 
                     message.getAmount(), approvalThreshold);
         }
         
@@ -170,7 +170,7 @@ public class ExternalFinanceService {
         ApprovalDecisionMessage decisionMessage = ApprovalDecisionMessage.builder()
                 .requestId(message.getRequestId())
                 .decision(decision)
-                .decidedBy("ENABLING_SIMULATOR")
+                .decidedBy("FINANCE_APPROVAL_AUTOMATION")
                 .notes(reason)
                 .timestamp(LocalDateTime.now())
                 .build();

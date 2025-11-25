@@ -1,4 +1,4 @@
-package com.destore.externalfinance.dto;
+package com.destore.financeapproval.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

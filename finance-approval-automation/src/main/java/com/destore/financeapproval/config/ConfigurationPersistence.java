@@ -1,4 +1,4 @@
-package com.destore.externalfinance.config;
+package com.destore.financeapproval.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,11 +14,11 @@ import java.util.Properties;
 @Slf4j
 public class ConfigurationPersistence {
     
-    private static final String CONFIG_FILE = "enabling-simulator-config.properties";
+    private static final String CONFIG_FILE = "finance-approval-automation-config.properties";
     private final Path configPath;
     
     public ConfigurationPersistence() {
-        // Store config in /app/config directory (for Docker) or current directory
+        // Store config in user home directory
         String configDir = System.getProperty("user.home");
         this.configPath = Paths.get(configDir, CONFIG_FILE);
         log.info("Configuration file path: {}", configPath.toAbsolutePath());
@@ -31,7 +31,7 @@ public class ConfigurationPersistence {
         props.setProperty("autoApproveEnabled", String.valueOf(autoApproveEnabled));
         
         try (OutputStream output = new FileOutputStream(configPath.toFile())) {
-            props.store(output, "Enabling Simulator Configuration");
+            props.store(output, "Finance Approval Automation Configuration");
             log.info("Configuration saved successfully to {}", configPath);
         } catch (IOException e) {
             log.error("Failed to save configuration to file", e);

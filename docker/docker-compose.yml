@@ -235,7 +235,7 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: destore
       SPRING_RABBITMQ_PASSWORD: destore123
-      ENABLING_SERVICE_URL: http://external-finance-service:9000
+      ENABLING_SERVICE_URL: http://finance-approval-automation:9000
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
     depends_on:
@@ -278,12 +278,12 @@ services:
       - destore-network
     restart: unless-stopped
 
-  # External Finance Service
-  external-finance-service:
+  # Finance Approval Automation Service
+  finance-approval-automation:
     build:
-      context: ../external-finance-service
+      context: ../finance-approval-automation
       dockerfile: Dockerfile
-    container_name: destore-external-finance-service
+    container_name: destore-finance-approval-automation
     ports:
       - "9000:9000"
     environment:

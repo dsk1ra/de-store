@@ -1,6 +1,6 @@
 spring:
   application:
-    name: external-finance-service
+    name: finance-approval-automation
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}

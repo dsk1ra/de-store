@@ -85,7 +85,7 @@ services=(
     "http://localhost:8083/inventory/health|Inventory Service"
     "http://localhost:8084/finance/health|Finance Service"
     "http://localhost:8085/notification/health|Notification Service"
-    "http://localhost:9000/api/external-finance/health|External Finance Service"
+    "http://localhost:9000/api/finance-approval/health|Finance Approval Automation"
 )
 
 all_healthy=true

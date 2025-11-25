@@ -11,10 +11,10 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>external-finance-service</artifactId>
+    <artifactId>finance-approval-automation</artifactId>
     <packaging>jar</packaging>
 
-    <name>DE-Store External Finance Service</name>
+    <name>DE-Store Finance Approval Automation</name>
 
     <dependencies>
         <dependency>
