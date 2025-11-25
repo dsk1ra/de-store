@@ -2,18 +2,18 @@ spring:
   application:
     name: notification-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/notification_db
-    username: destore
-    password: destore123
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/notification_db}
+    username: ${DATABASE_USERNAME:destore}
+    password: ${DATABASE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: destore
-    password: destore123
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:destore}
+    password: ${RABBITMQ_PASSWORD}
 
 server:
   port: 8085

@@ -30,8 +30,13 @@ build_service() {
     fi
 }
 
-# Navigate to project root
-cd "$(dirname "$0")"
+# Navigate to project root (one level up from scripts directory)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT" || exit 1
+
+echo "Working directory: $PROJECT_ROOT"
+echo ""
 
 # Build parent POM
 echo -e "${YELLOW}Building parent POM...${NC}"
@@ -44,12 +49,16 @@ fi
 
 echo ""
 
-# Build common module first (required by other services)
-echo -e "${YELLOW}Building common module...${NC}"
-if build_service "common"; then
+# Build and install common module first (required by other services)
+echo -e "${YELLOW}Building and installing common module...${NC}"
+cd common || exit 1
+if mvn clean install -DskipTests; then
+    echo -e "${GREEN}✓ common module built and installed${NC}"
+    cd ..
     echo ""
 else
-    echo -e "${RED}Common module build failed. Cannot continue.${NC}"
+    echo -e "${RED}✗ Common module build failed. Cannot continue.${NC}"
+    cd ..
     exit 1
 fi
 

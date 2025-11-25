@@ -5,6 +5,7 @@ import com.destore.pricing.dto.*;
 import com.destore.pricing.entity.Product;
 import com.destore.pricing.entity.Promotion;
 import com.destore.pricing.service.PricingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class PricingController {
     private final PricingService pricingService;
 
     @PostMapping("/products")
-    public ResponseEntity<ApiResponse<Product>> createProduct(@RequestBody ProductRequest request) {
+    public ResponseEntity<ApiResponse<Product>> createProduct(@Valid @RequestBody ProductRequest request) {
         try {
             Product product = pricingService.createProduct(request);
             return ResponseEntity.ok(ApiResponse.success("Product created successfully", product));

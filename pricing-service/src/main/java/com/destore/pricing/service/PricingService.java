@@ -28,7 +28,7 @@ public class PricingService {
     @Transactional
     public Product createProduct(ProductRequest request) {
         if (productRepository.existsByProductCode(request.getProductCode())) {
-            throw new RuntimeException("Product already exists with code: " + request.getProductCode());
+            throw new com.destore.exception.DuplicateResourceException("Product", request.getProductCode());
         }
 
         Product product = Product.builder()
@@ -45,7 +45,7 @@ public class PricingService {
 
     public Product getProduct(String productCode) {
         return productRepository.findByProductCode(productCode)
-                .orElseThrow(() -> new RuntimeException("Product not found: " + productCode));
+                .orElseThrow(() -> new com.destore.exception.ResourceNotFoundException("Product", productCode));
     }
 
     public List<Product> getAllProducts() {
@@ -86,7 +86,7 @@ public class PricingService {
         String searchTerm = query.toLowerCase();
         return productRepository.findAll().stream()
                 .filter(p -> p.getProductName().toLowerCase().contains(searchTerm)
-                || p.getProductCode().toLowerCase().contains(searchTerm))
+                        || p.getProductCode().toLowerCase().contains(searchTerm))
                 .toList();
     }
 
@@ -94,25 +94,26 @@ public class PricingService {
     public Promotion createPromotion(PromotionRequest request) {
         // Check if promotion code already exists
         if (promotionRepository.findByPromotionCode(request.getPromotionCode()).isPresent()) {
-            throw new RuntimeException("Promotion with code '" + request.getPromotionCode() + "' already exists");
+            throw new com.destore.exception.DuplicateResourceException("Promotion", request.getPromotionCode());
         }
-        
+
         // Validate dates
-        if (request.getStartDate() != null && request.getEndDate() != null && 
-            request.getStartDate().isAfter(request.getEndDate())) {
+        if (request.getStartDate() != null && request.getEndDate() != null &&
+                request.getStartDate().isAfter(request.getEndDate())) {
             throw new RuntimeException("Start date cannot be after end date");
         }
-        
+
         // Validate discountValue based on promotion type
         validatePromotionDiscount(request);
-        
+
         String productsString = request.getApplicableProducts() != null
-                ? String.join(",", request.getApplicableProducts()) : "";
+                ? String.join(",", request.getApplicableProducts())
+                : "";
 
         // Normalize: Set discountValue to null for BOGO and THREE_FOR_TWO
         BigDecimal normalizedDiscountValue = null;
         if (request.getPromotionType() == com.destore.pricing.entity.PromotionType.PERCENTAGE_DISCOUNT ||
-            request.getPromotionType() == com.destore.pricing.entity.PromotionType.FIXED_AMOUNT) {
+                request.getPromotionType() == com.destore.pricing.entity.PromotionType.FIXED_AMOUNT) {
             normalizedDiscountValue = request.getDiscountValue();
         }
 
@@ -230,7 +231,7 @@ public class PricingService {
                             "Discount value is required for PERCENTAGE_DISCOUNT promotions");
                 }
                 if (request.getDiscountValue().compareTo(BigDecimal.ZERO) <= 0 ||
-                    request.getDiscountValue().compareTo(BigDecimal.valueOf(100)) > 0) {
+                        request.getDiscountValue().compareTo(BigDecimal.valueOf(100)) > 0) {
                     throw new IllegalArgumentException(
                             "Percentage discount must be between 0 and 100");
                 }

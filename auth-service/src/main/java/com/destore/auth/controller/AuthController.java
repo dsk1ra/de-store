@@ -4,6 +4,7 @@ import com.destore.auth.service.AuthService;
 import com.destore.dto.ApiResponse;
 import com.destore.dto.LoginRequest;
 import com.destore.dto.LoginResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,11 +19,11 @@ import java.util.Map;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    
+
     private final AuthService authService;
-    
+
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         try {
             LoginResponse response = authService.login(request);
             return ResponseEntity.ok(ApiResponse.success("Login successful", response));
@@ -32,19 +33,19 @@ public class AuthController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @PostMapping("/validate")
     public ResponseEntity<ApiResponse<Map<String, Object>>> validateToken(
             @RequestHeader("Authorization") String authHeader) {
         try {
             String token = authHeader.replace("Bearer ", "");
-            
+
             if (authService.validateToken(token)) {
                 Map<String, Object> result = new HashMap<>();
                 result.put("valid", true);
                 result.put("username", authService.getUsernameFromToken(token));
                 result.put("role", authService.getRoleFromToken(token));
-                
+
                 return ResponseEntity.ok(ApiResponse.success(result));
             } else {
                 Map<String, Object> result = new HashMap<>();
@@ -60,7 +61,7 @@ public class AuthController {
                     .body(ApiResponse.error(e.getMessage()));
         }
     }
-    
+
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Auth Service is healthy");

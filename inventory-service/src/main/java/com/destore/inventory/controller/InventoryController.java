@@ -5,6 +5,7 @@ import com.destore.inventory.dto.*;
 import com.destore.inventory.entity.Inventory;
 import com.destore.inventory.entity.ReservationStatus;
 import com.destore.inventory.service.InventoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +19,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class InventoryController {
-    
+
     private final InventoryService inventoryService;
-    
+
     @PostMapping
-    public ResponseEntity<ApiResponse<Inventory>> createInventory(@RequestBody InventoryCreateRequest request) {
+    public ResponseEntity<ApiResponse<Inventory>> createInventory(@Valid @RequestBody InventoryCreateRequest request) {
         try {
             Inventory inventory = inventoryService.createInventory(request);
             return ResponseEntity.ok(new ApiResponse<Inventory>(true, "Inventory created successfully", inventory));
@@ -31,7 +32,7 @@ public class InventoryController {
             return ResponseEntity.badRequest().body(new ApiResponse<Inventory>(false, e.getMessage(), null));
         }
     }
-    
+
     @GetMapping("/{productCode}")
     public ResponseEntity<ApiResponse<Inventory>> getInventory(@PathVariable String productCode) {
         try {
@@ -42,57 +43,47 @@ public class InventoryController {
             return ResponseEntity.badRequest().body(new ApiResponse<Inventory>(false, e.getMessage(), null));
         }
     }
-    
+
     @PutMapping("/{productCode}")
     public ResponseEntity<ApiResponse<Inventory>> updateInventoryDirect(
             @PathVariable String productCode,
             @RequestBody InventoryUpdateRequest request) {
         try {
-            Inventory inventory = inventoryService.updateQuantity(productCode, request.getQuantity(), request.getTransactionType(), request.getLowStockThreshold());
+            Inventory inventory = inventoryService.updateQuantity(productCode, request.getQuantity(),
+                    request.getTransactionType(), request.getLowStockThreshold());
             return ResponseEntity.ok(new ApiResponse<Inventory>(true, "Inventory updated successfully", inventory));
         } catch (Exception e) {
             log.error("Error updating inventory", e);
             return ResponseEntity.badRequest().body(new ApiResponse<Inventory>(false, e.getMessage(), null));
         }
     }
-    
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<Inventory>>> getAllInventory() {
         try {
             List<Inventory> inventories = inventoryService.getAllInventory();
-            return ResponseEntity.ok(new ApiResponse<List<Inventory>>(true, "All inventory retrieved successfully", inventories));
+            return ResponseEntity
+                    .ok(new ApiResponse<List<Inventory>>(true, "All inventory retrieved successfully", inventories));
         } catch (Exception e) {
             log.error("Error retrieving all inventory", e);
             return ResponseEntity.badRequest().body(new ApiResponse<List<Inventory>>(false, e.getMessage(), null));
         }
     }
-    
-    @PutMapping("/{productCode}/update")
-    public ResponseEntity<ApiResponse<Inventory>> updateInventory(
-            @PathVariable String productCode,
-            @RequestBody InventoryUpdateRequest request) {
-        try {
-            Inventory inventory = inventoryService.updateQuantity(productCode, request.getQuantity(), request.getTransactionType(), request.getLowStockThreshold());
-            return ResponseEntity.ok(new ApiResponse<Inventory>(true, "Inventory updated successfully", inventory));
-        } catch (Exception e) {
-            log.error("Error updating inventory", e);
-            return ResponseEntity.badRequest().body(new ApiResponse<Inventory>(false, e.getMessage(), null));
-        }
-    }
-    
+
     @PostMapping("/{productCode}/reserve")
     public ResponseEntity<ApiResponse<ReservationResponse>> reserveStock(
             @PathVariable String productCode,
-            @RequestBody ReservationRequest request) {
+            @Valid @RequestBody ReservationRequest request) {
         try {
             ReservationResponse response = inventoryService.reserveStock(productCode, request);
-            return ResponseEntity.ok(new ApiResponse<ReservationResponse>(true, "Stock reserved successfully", response));
+            return ResponseEntity
+                    .ok(new ApiResponse<ReservationResponse>(true, "Stock reserved successfully", response));
         } catch (Exception e) {
             log.error("Error reserving stock", e);
             return ResponseEntity.badRequest().body(new ApiResponse<ReservationResponse>(false, e.getMessage(), null));
         }
     }
-    
+
     @PostMapping("/{productCode}/deduct")
     public ResponseEntity<ApiResponse<Inventory>> deductStock(
             @PathVariable String productCode,
@@ -105,7 +96,7 @@ public class InventoryController {
             return ResponseEntity.badRequest().body(new ApiResponse<Inventory>(false, e.getMessage(), null));
         }
     }
-    
+
     @PostMapping("/{productCode}/restock")
     public ResponseEntity<ApiResponse<Inventory>> restockInventory(
             @PathVariable String productCode,
@@ -118,22 +109,22 @@ public class InventoryController {
             return ResponseEntity.badRequest().body(new ApiResponse<Inventory>(false, e.getMessage(), null));
         }
     }
-    
+
     @GetMapping("/low-stock")
     public ResponseEntity<ApiResponse<List<Inventory>>> getLowStockItems(
             @RequestParam(required = false) String storeId) {
         try {
             List<Inventory> lowStockItems = inventoryService.getLowStockItems(storeId);
-            return ResponseEntity.ok(new ApiResponse<List<Inventory>>(true, 
+            return ResponseEntity.ok(new ApiResponse<List<Inventory>>(true,
                     "Found " + lowStockItems.size() + " low stock item(s)", lowStockItems));
         } catch (Exception e) {
             log.error("Error retrieving low stock items", e);
             return ResponseEntity.badRequest().body(new ApiResponse<List<Inventory>>(false, e.getMessage(), null));
         }
     }
-    
+
     // Reservation Management Endpoints
-    
+
     @PostMapping("/reservations/confirm")
     public ResponseEntity<ApiResponse<ReservationDetailsResponse>> confirmReservation(
             @RequestBody ConfirmReservationRequest request) {
@@ -145,7 +136,7 @@ public class InventoryController {
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
-    
+
     @PostMapping("/reservations/cancel")
     public ResponseEntity<ApiResponse<ReservationDetailsResponse>> cancelReservation(
             @RequestBody CancelReservationRequest request) {
@@ -157,7 +148,7 @@ public class InventoryController {
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
-    
+
     @GetMapping("/reservations/{reservationId}")
     public ResponseEntity<ApiResponse<ReservationDetailsResponse>> getReservation(
             @PathVariable String reservationId) {
@@ -169,14 +160,14 @@ public class InventoryController {
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
-    
+
     @GetMapping("/reservations")
     public ResponseEntity<ApiResponse<List<ReservationDetailsResponse>>> getAllReservations(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String productCode) {
         try {
             List<ReservationDetailsResponse> reservations;
-            
+
             if (status != null) {
                 ReservationStatus reservationStatus = ReservationStatus.valueOf(status.toUpperCase());
                 reservations = inventoryService.getReservationsByStatus(reservationStatus);
@@ -185,28 +176,28 @@ public class InventoryController {
             } else {
                 reservations = inventoryService.getAllReservations();
             }
-            
-            return ResponseEntity.ok(new ApiResponse<>(true, 
+
+            return ResponseEntity.ok(new ApiResponse<>(true,
                     "Found " + reservations.size() + " reservation(s)", reservations));
         } catch (Exception e) {
             log.error("Error retrieving reservations", e);
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
-    
+
     @PostMapping("/reservations/release-expired")
     public ResponseEntity<ApiResponse<Map<String, Integer>>> releaseExpiredReservations() {
         try {
             int count = inventoryService.releaseExpiredReservations();
-            return ResponseEntity.ok(new ApiResponse<>(true, 
-                    "Released " + count + " expired reservation(s)", 
+            return ResponseEntity.ok(new ApiResponse<>(true,
+                    "Released " + count + " expired reservation(s)",
                     Map.of("releasedCount", count)));
         } catch (Exception e) {
             log.error("Error releasing expired reservations", e);
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
-    
+
     @GetMapping("/health")
     public ResponseEntity<ApiResponse<String>> health() {
         return ResponseEntity.ok(new ApiResponse<String>(true, "Inventory service is running", "OK"));

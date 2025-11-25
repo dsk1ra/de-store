@@ -2,9 +2,9 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/auth_db
-    username: destore
-    password: destore123
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/auth_db}
+    username: ${DATABASE_USERNAME:destore}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -47,8 +47,8 @@ management:
       endpoint: http://localhost:9411/api/v2/spans
 
 jwt:
-  secret: MySecretKeyForDEStoreApplicationMustBe256BitsOrLongerForHS256Algorithm
-  expiration: 3600000 # 1 hour in milliseconds
+  secret: ${JWT_SECRET:MySecretKeyForDEStoreApplicationMustBe256BitsOrLongerForHS256Algorithm}
+  expiration: ${JWT_EXPIRATION:3600000} # 1 hour in milliseconds
 
 logging:
   level:

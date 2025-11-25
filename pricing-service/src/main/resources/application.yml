@@ -2,9 +2,9 @@ spring:
   application:
     name: pricing-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/pricing_db
-    username: destore
-    password: destore123
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/pricing_db}
+    username: ${DATABASE_USERNAME:destore}
+    password: ${DATABASE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update

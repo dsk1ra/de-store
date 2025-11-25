@@ -81,7 +81,17 @@
             <div class="button-group">
                 <button class="btn btn-primary" onclick="viewPendingQueue(event)">View Pending Queue</button>
                 <button class="btn btn-secondary" onclick="viewQueueStats(event)">View Queue Stats</button>
-                <button class="btn btn-secondary" onclick="checkApprovalStatus(event)">Check Status</button>
+            </div>
+
+            <div class="form-grid" style="margin-top: 20px;">
+                <div class="form-group">
+                    <label for="statusRequestId">Request ID (for status check)</label>
+                    <input type="text" id="statusRequestId" placeholder="Enter Request ID">
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="checkApprovalStatus(event)">Check Status</button>
+                </div>
             </div>
 
             <div id="queueResponse" class="response-area" style="display:none;"></div>
@@ -322,7 +332,7 @@
         }
 
         async function checkApprovalStatus(event) {
-            const requestId = document.getElementById('approvalRequestId').value;
+            const requestId = document.getElementById('statusRequestId').value;
             if (!requestId) {
                 showError('Please enter a Request ID');
                 return;
@@ -338,6 +348,10 @@
 
                 const data = await response.json();
                 showResponse('queueResponse', data, !response.ok);
+
+                if (data.success) {
+                    document.getElementById('statusRequestId').value = '';
+                }
             } catch (error) {
                 handleApiError(error, 'checking approval status');
             } finally {

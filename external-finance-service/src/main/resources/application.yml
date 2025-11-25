@@ -2,10 +2,10 @@ spring:
   application:
     name: external-finance-service
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: destore
-    password: destore123
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:destore}
+    password: ${RABBITMQ_PASSWORD}
 
 server:
   port: 9000
