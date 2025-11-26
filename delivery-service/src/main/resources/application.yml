@@ -1,0 +1,91 @@
+spring:
+  application:
+    name: delivery-service
+  datasource:
+    url: jdbc:postgresql://localhost:5440/delivery_db
+    username: destore
+    password: destore123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: 8088
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+logging:
+  level:
+    com.destore: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# Delivery Configuration
+delivery:
+  # Base charge for all deliveries
+  base-charge: 5.00
+  
+  # Distance-based charges (per km)
+  distance:
+    rate-per-km: 1.50
+    free-distance-threshold: 5.0  # First 5km free
+  
+  # Order value-based discounts
+  order-value:
+    free-delivery-threshold: 100.00  # Free delivery over $100
+    reduced-rate-threshold: 50.00    # 50% off delivery between $50-$100
+  
+  # Zone-based charges
+  zones:
+    - name: CITY_CENTER
+      multiplier: 1.0
+      max-distance: 10.0
+    - name: SUBURBAN
+      multiplier: 1.2
+      max-distance: 25.0
+    - name: RURAL
+      multiplier: 1.5
+      max-distance: 50.0
+    - name: REMOTE
+      multiplier: 2.0
+      max-distance: 100.0
+  
+  # Express delivery
+  express:
+    enabled: true
+    surcharge: 10.00
+    time-reduction-hours: 2
+  
+  # Peak hours surcharge
+  peak-hours:
+    enabled: true
+    surcharge-percentage: 20
+    hours:
+      - start: "11:00"
+        end: "13:00"
+      - start: "18:00"
+        end: "20:00"

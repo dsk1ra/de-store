@@ -71,6 +71,9 @@ services=(
     "finance-service"
     "notification-service"
     "finance-approval-automation"
+    "loyalty-service"
+    "analytics-service"
+    "delivery-service"
     "api-gateway"
 )
 

@@ -43,11 +43,14 @@ A cloud-native microservices-based e-commerce platform built with Spring Boot, d
 | **Inventory Service** | 8083 | Stock management & reservations | PostgreSQL (5435) |
 | **Finance Service** | 8084 | Purchase approval workflow | PostgreSQL (5436) |
 | **Notification Service** | 8085 | Event-driven notifications | PostgreSQL (5437) |
+| **Loyalty Service** | 8086 | Customer loyalty & rewards | PostgreSQL (5438) |
+| **Analytics Service** | 8087 | Purchase tracking & reports | PostgreSQL (5439) |
+| **Delivery Service** | 8088 | Delivery charge calculation | PostgreSQL (5440) |
 | **External Finance** | 9000 | Finance approval simulator | N/A |
 
 ### Infrastructure
 
-- **PostgreSQL**: 5 isolated databases (one per service)
+- **PostgreSQL**: 8 isolated databases (one per service)
 - **RabbitMQ**: Message broker (Port 5672, Management UI: 15672)
 - **Zipkin**: Distributed tracing (Port 9411)
 - **Eureka**: Service discovery (Port 8761)
@@ -262,6 +265,66 @@ GET /api/finance/queue-stats
 Authorization: Bearer {token}
 ```
 
+### Loyalty API (Port 8086)
+
+#### Register Customer
+```bash
+POST /api/loyalty/customers
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "customerId": "CUST-001",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "address": "123 Main St"
+}
+```
+
+#### Record Purchase (Earn Points)
+```bash
+POST /api/loyalty/customers/{customerId}/purchases
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "orderId": "ORDER-12345",
+  "amount": 150.00,
+  "items": "Laptop, Mouse"
+}
+```
+
+#### Get Regular Customers
+```bash
+GET /api/loyalty/customers/regular
+Authorization: Bearer {token}
+```
+
+#### Get Customer Discount
+```bash
+GET /api/loyalty/customers/{customerId}/discount
+Authorization: Bearer {token}
+```
+
+#### Create Loyalty Promotion
+```bash
+POST /api/loyalty/promotions
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "promotionCode": "GOLD2024",
+  "promotionName": "Gold Member Exclusive",
+  "description": "Special discount for Gold tier",
+  "minTierRequired": "GOLD",
+  "discountPercentage": 15,
+  "pointsCost": 500,
+  "startDate": "2024-01-01T00:00:00",
+  "endDate": "2024-12-31T23:59:59"
+}
+```
+
 ### Orchestration API (Port 8080)
 
 #### Process Purchase (Full Workflow)
@@ -384,6 +447,421 @@ de-store/
 ├── pom.xml              # Parent Maven configuration
 └── README.md            # This file
 ```
+
+## 📊 Analytics Service
+
+### Overview
+
+The Analytics Service tracks purchase activities and generates comprehensive reports on store performance. It subscribes to purchase events via RabbitMQ and maintains an accounting database for analytical queries.
+
+**Port**: 8087  
+**Database**: PostgreSQL (5439)
+
+### Key Features
+
+1. **Transaction Tracking**: Automatically records all purchase transactions
+2. **Sales Reports**: Generate sales reports for any date range
+3. **Performance Metrics**: Track store-level performance indicators
+4. **Top Products**: Identify best-selling products
+5. **Customer Analytics**: Analyze customer purchase behavior
+
+### Data Model
+
+```
+sales_transactions
+├── transaction_id (unique)
+├── customer_id
+├── customer_name
+├── store_id
+├── total_amount
+├── discount_amount
+├── tax_amount
+├── net_amount
+├── payment_method
+├── transaction_status
+├── items (JSON)
+└── transaction_date
+
+product_sales_summary
+├── product_code
+├── report_date
+├── quantity_sold
+├── total_revenue
+├── average_price
+└── transaction_count
+
+store_performance
+├── store_id
+├── report_date
+├── total_sales
+├── transaction_count
+├── average_transaction_value
+└── net_revenue
+
+customer_analytics
+├── customer_id
+├── report_date
+├── total_purchases
+├── total_spent
+├── average_order_value
+├── first_purchase_date
+└── last_purchase_date
+```
+
+### API Endpoints
+
+**Track Transaction**
+```bash
+POST /analytics/transactions
+Content-Type: application/json
+
+{
+  "transactionId": "TXN-001",
+  "customerId": "CUST-123",
+  "customerName": "John Doe",
+  "storeId": "STORE-01",
+  "totalAmount": 150.00,
+  "discountAmount": 15.00,
+  "taxAmount": 12.00,
+  "netAmount": 135.00,
+  "paymentMethod": "CREDIT_CARD",
+  "transactionStatus": "COMPLETED",
+  "items": "{\"products\": [...]}",
+  "transactionDate": "2024-01-15T10:30:00"
+}
+```
+
+**Generate Sales Report**
+```bash
+GET /analytics/reports/sales?startDate=2024-01-01&endDate=2024-01-31
+
+Response:
+{
+  "startDate": "2024-01-01",
+  "endDate": "2024-01-31",
+  "totalSales": 45000.00,
+  "totalDiscounts": 4500.00,
+  "netRevenue": 40500.00,
+  "transactionCount": 350,
+  "averageTransactionValue": 128.57,
+  "customerCount": 180
+}
+```
+
+**Get Store Performance**
+```bash
+GET /analytics/reports/performance?reportDate=2024-01-15
+
+Response:
+[
+  {
+    "storeId": "STORE-01",
+    "period": "2024-01-15",
+    "totalRevenue": 5200.00,
+    "totalTransactions": 42,
+    "averageOrderValue": 123.81,
+    "status": "Active"
+  }
+]
+```
+
+**Get Top Customers**
+```bash
+GET /analytics/customers/top?reportDate=2024-01-15&limit=10
+
+Response:
+[
+  {
+    "customerId": "CUST-123",
+    "totalPurchases": 15,
+    "totalSpent": 2500.00,
+    "averageOrderValue": 166.67,
+    "firstPurchaseDate": "2023-06-01",
+    "lastPurchaseDate": "2024-01-15",
+    "daysSinceLastPurchase": 0
+  }
+]
+```
+
+**Get Top Products**
+```bash
+GET /analytics/products/top?reportDate=2024-01-15&limit=10
+
+Response:
+[
+  {
+    "productCode": "PROD-001",
+    "reportDate": "2024-01-15",
+    "quantitySold": 85,
+    "totalRevenue": 4250.00,
+    "averagePrice": 50.00,
+    "transactionCount": 42
+  }
+]
+```
+
+### Event Integration
+
+The Analytics Service automatically listens to purchase events:
+
+**RabbitMQ Configuration**:
+- Exchange: `purchase.exchange`
+- Queue: `purchase.tracking.queue`
+- Routing Key: `purchase.tracking`
+
+Other services can publish purchase events that will be automatically tracked:
+
+```java
+rabbitTemplate.convertAndSend(
+    "purchase.exchange",
+    "purchase.tracking",
+    transactionRequest
+);
+```
+
+### Web Dashboard
+
+Access the Analytics Dashboard at:
+```
+http://localhost/pages/analytics.html
+```
+
+Features:
+- Real-time metrics (Today/Week/Month)
+- Sales report generation
+- Top products ranking
+- Top customers analysis
+- Store performance comparison
+
+## 🚚 Delivery Service
+
+### Overview
+
+The Delivery Service calculates delivery charges based on multiple factors including distance, order value, delivery zone, express delivery options, and peak hours. It implements sophisticated pricing rules with automatic discounts.
+
+**Port**: 8088  
+**Database**: PostgreSQL (5440)
+
+### Key Features
+
+1. **Distance-Based Pricing**: $1.50/km with first 5km free
+2. **Zone-Based Surcharges**: 
+   - City Center (0-10km): 1.0x multiplier
+   - Suburban (10-25km): 1.2x multiplier
+   - Rural (25-50km): 1.5x multiplier
+   - Remote (50-100km): 2.0x multiplier
+3. **Order Value Discounts**:
+   - Orders $50-$99: 50% off delivery
+   - Orders $100+: FREE delivery
+4. **Express Delivery**: +$10 surcharge, 2-hour delivery
+5. **Peak Hour Pricing**: +20% during 11-13 and 18-20
+6. **Order Tracking**: Full lifecycle from pending to delivered
+
+### Pricing Calculation Formula
+
+```
+Base Charge = $5.00
+Distance Charge = (distance - 5km) × $1.50/km  [if distance > 5km]
+Zone Charge = Distance Charge × (zone_multiplier - 1.0)
+Express Charge = $10.00  [if express]
+Peak Hour Charge = (Base + Distance + Zone) × 20%  [if peak hour]
+
+Subtotal = Base + Distance + Zone + Express + Peak Hour
+
+Discount:
+  - If order_value >= $100: discount = Subtotal (FREE)
+  - If order_value >= $50: discount = Subtotal × 50%
+  - Else: discount = $0
+
+Final Delivery Charge = Subtotal - Discount
+```
+
+### Data Model
+
+```
+delivery_orders
+├── order_id (unique)
+├── customer_id
+├── store_id
+├── order_value
+├── delivery_charge
+├── distance
+├── zone (CITY_CENTER/SUBURBAN/RURAL/REMOTE)
+├── is_express
+├── is_peak_hour
+├── status (PENDING/CONFIRMED/ASSIGNED/IN_TRANSIT/DELIVERED)
+├── delivery_address
+├── pickup_address
+├── estimated_delivery_time
+├── actual_delivery_time
+├── driver_name
+├── driver_phone
+├── vehicle_number
+├── base_charge
+├── distance_charge
+├── zone_charge
+├── express_charge
+├── peak_hour_charge
+└── discount
+
+delivery_zones
+├── zone (enum)
+├── multiplier
+├── min_distance
+├── max_distance
+└── description
+
+delivery_pricing
+├── base_charge
+├── rate_per_km
+├── free_distance_threshold
+├── free_delivery_threshold
+├── reduced_rate_threshold
+├── reduced_rate_percentage
+├── express_surcharge
+├── peak_hour_surcharge_percentage
+├── effective_from
+└── effective_until
+```
+
+### API Endpoints
+
+**Calculate Delivery Charge**
+```bash
+POST /delivery/calculate
+Content-Type: application/json
+
+{
+  "orderId": "ORDER-001",
+  "customerId": "CUST-001",
+  "customerName": "John Doe",
+  "storeId": "STORE-01",
+  "orderValue": 75.00,
+  "distance": 15.0,
+  "deliveryAddress": "456 Oak Ave, Suburban Area",
+  "pickupAddress": "Store 01, Downtown",
+  "isExpress": false,
+  "notes": "Ring doorbell"
+}
+
+Response:
+{
+  "orderId": "ORDER-001",
+  "orderValue": 75.0,
+  "distance": 15.0,
+  "zone": "SUBURBAN",
+  "isExpress": false,
+  "isPeakHour": false,
+  "baseCharge": 5.0,
+  "distanceCharge": 15.0,
+  "zoneCharge": 3.0,
+  "expressCharge": 0,
+  "peakHourCharge": 0,
+  "discount": 11.5,
+  "totalDeliveryCharge": 11.5,
+  "discountReason": "50% off delivery for orders over $50",
+  "chargeBreakdown": "Base: $5.00\nDistance: $15.00\nZone: $3.00\nDiscount: -$11.50",
+  "grandTotal": 86.5
+}
+```
+
+**Get Delivery Order**
+```bash
+GET /delivery/orders/{orderId}
+
+Response:
+{
+  "id": 1,
+  "orderId": "ORDER-001",
+  "customerId": "CUST-001",
+  "orderValue": 75.0,
+  "deliveryCharge": 11.5,
+  "distance": 15.0,
+  "zone": "SUBURBAN",
+  "status": "PENDING",
+  "deliveryAddress": "456 Oak Ave",
+  "estimatedDeliveryTime": "2024-01-15T15:00:00"
+}
+```
+
+**Get Customer Deliveries**
+```bash
+GET /delivery/customers/{customerId}
+
+Response: Array of delivery orders
+```
+
+**Get Deliveries by Status**
+```bash
+GET /delivery/status/{status}
+# status: PENDING, CONFIRMED, ASSIGNED, IN_TRANSIT, DELIVERED, CANCELLED
+```
+
+**Update Delivery Status**
+```bash
+PUT /delivery/status
+Content-Type: application/json
+
+{
+  "orderId": "ORDER-001",
+  "status": "IN_TRANSIT",
+  "driverName": "Mike Johnson",
+  "driverPhone": "+1-555-0123",
+  "vehicleNumber": "DEL-123",
+  "notes": "Out for delivery"
+}
+```
+
+### Pricing Examples
+
+**Example 1: Short Distance, Low Order Value**
+- Order: $45.00, Distance: 3.5km
+- Result: Base $5.00 + Distance $0 (within free 5km) = **$5.00**
+
+**Example 2: Suburban, Medium Order Value**
+- Order: $75.00, Distance: 15km  
+- Base: $5.00
+- Distance: (15-5) × $1.50 = $15.00
+- Zone (1.2x): $15.00 × 0.2 = $3.00
+- Subtotal: $23.00
+- Discount (50%): -$11.50
+- Result: **$11.50**
+
+**Example 3: Rural, High Order Value, Express**
+- Order: $150.00, Distance: 30km, Express
+- Base: $5.00
+- Distance: (30-5) × $1.50 = $37.50
+- Zone (1.5x): $37.50 × 0.5 = $18.75
+- Express: $10.00
+- Subtotal: $71.25
+- Discount (100%): -$71.25
+- Result: **$0.00 (FREE)**
+
+### Web Dashboard
+
+Access the Delivery Calculator at:
+```
+http://localhost/pages/delivery.html
+```
+
+Features:
+- Interactive delivery charge calculator
+- Real-time pricing with all factors
+- Zone visualization
+- Discount calculation display
+- Recent delivery orders table
+- Charge breakdown details
+
+### Configuration
+
+Pricing configuration is stored in the database and can be updated via the `delivery_pricing` table. Initial defaults:
+- Base charge: $5.00
+- Rate per km: $1.50
+- Free distance: 5km
+- Free delivery threshold: $100
+- Reduced rate threshold: $50
+- Express surcharge: $10.00
+- Peak hour surcharge: 20%
 
 ## 🏛️ Design Patterns & Best Practices
 

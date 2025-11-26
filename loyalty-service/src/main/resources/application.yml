@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: loyalty-service
+  datasource:
+    url: jdbc:postgresql://localhost:5438/loyalty_db
+    username: destore
+    password: destore123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: destore
+    password: destore123
+
+server:
+  port: 8086
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+logging:
+  level:
+    com.destore: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# Loyalty Service Configuration
+loyalty:
+  points:
+    per-dollar: 10
+    bronze-threshold: 0
+    silver-threshold: 1000
+    gold-threshold: 5000
+  discounts:
+    bronze: 0
+    silver: 5
+    gold: 10

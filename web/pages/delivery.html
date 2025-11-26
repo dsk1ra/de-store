@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Service - DE-Store</title>
+    <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        .delivery-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .calculator-section,
+        .orders-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .calculator-section h2,
+        .orders-section h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .charge-breakdown {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .charge-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .charge-item.total {
+            background: #3498db;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .charge-item.discount {
+            background: #27ae60;
+            color: white;
+        }
+
+        .zone-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .zone-CITY_CENTER {
+            background: #3498db;
+            color: white;
+        }
+
+        .zone-SUBURBAN {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .zone-RURAL {
+            background: #e67e22;
+            color: white;
+        }
+
+        .zone-REMOTE {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .orders-table th,
+        .orders-table td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .orders-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .orders-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-PENDING {
+            background: #ffeaa7;
+            color: #636e72;
+        }
+
+        .status-CONFIRMED {
+            background: #74b9ff;
+            color: white;
+        }
+
+        .status-IN_TRANSIT {
+            background: #a29bfe;
+            color: white;
+        }
+
+        .status-DELIVERED {
+            background: #00b894;
+            color: white;
+        }
+
+        .status-CANCELLED {
+            background: #d63031;
+            color: white;
+        }
+
+        .error {
+            color: #e74c3c;
+            padding: 15px;
+            background: #fee;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .success {
+            color: #27ae60;
+            padding: 15px;
+            background: #efe;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .info-box h4 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+
+        .info-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="delivery-container">
+        <h1>🚚 Delivery Service</h1>
+        <p>Calculate delivery charges and manage deliveries</p>
+
+        <!-- Delivery Charge Calculator -->
+        <div class="calculator-section">
+            <h2>Delivery Charge Calculator</h2>
+
+            <div class="info-box">
+                <h4>Pricing Rules:</h4>
+                <ul>
+                    <li><strong>Base Charge:</strong> $5.00</li>
+                    <li><strong>Distance:</strong> $1.50/km (first 5km free)</li>
+                    <li><strong>Order over $50:</strong> 50% off delivery</li>
+                    <li><strong>Order over $100:</strong> FREE delivery</li>
+                    <li><strong>Express Delivery:</strong> +$10.00</li>
+                    <li><strong>Peak Hours (11-13, 18-20):</strong> +20% surcharge</li>
+                </ul>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Order ID *</label>
+                    <input type="text" id="orderId" placeholder="e.g., ORDER-001" required />
+                </div>
+                <div class="form-group">
+                    <label>Customer ID *</label>
+                    <input type="text" id="customerId" placeholder="e.g., CUST-001" required />
+                </div>
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="customerName" placeholder="Optional" />
+                </div>
+                <div class="form-group">
+                    <label>Store ID *</label>
+                    <input type="text" id="storeId" placeholder="e.g., STORE-01" required />
+                </div>
+                <div class="form-group">
+                    <label>Order Value ($) *</label>
+                    <input type="number" id="orderValue" step="0.01" min="0.01" placeholder="e.g., 75.50" required />
+                </div>
+                <div class="form-group">
+                    <label>Distance (km) *</label>
+                    <input type="number" id="distance" step="0.1" min="0" placeholder="e.g., 12.5" required />
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Delivery Address *</label>
+                <input type="text" id="deliveryAddress" placeholder="Full delivery address" required />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Pickup Address</label>
+                <input type="text" id="pickupAddress" placeholder="Optional pickup address" />
+            </div>
+
+            <div class="checkbox-group" style="margin-bottom: 15px;">
+                <input type="checkbox" id="isExpress" />
+                <label for="isExpress">Express Delivery (+$10.00)</label>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Notes</label>
+                <input type="text" id="notes" placeholder="Any special instructions" />
+            </div>
+
+            <button class="btn-primary" onclick="calculateDeliveryCharge()">Calculate Delivery Charge</button>
+
+            <div id="calculationResult"></div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="orders-section">
+            <h2>Recent Deliveries</h2>
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Distance</th>
+                        <th>Zone</th>
+                        <th>Charge</th>
+                        <th>Status</th>
+                        <th>Order Time</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">
+                            No deliveries yet
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8088/delivery';
+        let recentOrders = [];
+
+        async function calculateDeliveryCharge() {
+            // Validate required fields
+            const orderId = document.getElementById('orderId').value;
+            const customerId = document.getElementById('customerId').value;
+            const storeId = document.getElementById('storeId').value;
+            const orderValue = document.getElementById('orderValue').value;
+            const distance = document.getElementById('distance').value;
+            const deliveryAddress = document.getElementById('deliveryAddress').value;
+
+            if (!orderId || !customerId || !storeId || !orderValue || !distance || !deliveryAddress) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            const request = {
+                orderId: orderId,
+                customerId: customerId,
+                customerName: document.getElementById('customerName').value || null,
+                storeId: storeId,
+                orderValue: parseFloat(orderValue),
+                distance: parseFloat(distance),
+                deliveryAddress: deliveryAddress,
+                pickupAddress: document.getElementById('pickupAddress').value || null,
+                isExpress: document.getElementById('isExpress').checked,
+                notes: document.getElementById('notes').value || null
+            };
+
+            const resultDiv = document.getElementById('calculationResult');
+            resultDiv.innerHTML = '<p>Calculating...</p>';
+
+            try {
+                const response = await fetch(`${API_BASE}/calculate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(request)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to calculate delivery charge');
+                }
+
+                const result = await response.json();
+                displayResult(result);
+
+                // Add to recent orders
+                recentOrders.unshift(result);
+                updateOrdersTable();
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        function displayResult(result) {
+            const resultDiv = document.getElementById('calculationResult');
+
+            resultDiv.innerHTML = `
+                <div class="result-card">
+                    <h3>Delivery Charge Calculated Successfully! ✓</h3>
+                    <p><strong>Order ID:</strong> ${result.orderId}</p>
+                    <p><strong>Zone:</strong> <span class="zone-badge zone-${result.zone}">${result.zone.replace('_', ' ')}</span></p>
+                    ${result.isExpress ? '<p><strong>Express Delivery:</strong> Yes ⚡</p>' : ''}
+                    ${result.isPeakHour ? '<p><strong>Peak Hour:</strong> Yes 📈</p>' : ''}
+                    
+                    <div class="charge-breakdown">
+                        <div class="charge-item">
+                            <span>Base Charge:</span>
+                            <span>$${result.baseCharge.toFixed(2)}</span>
+                        </div>
+                        <div class="charge-item">
+                            <span>Distance Charge:</span>
+                            <span>$${result.distanceCharge.toFixed(2)}</span>
+                        </div>
+                        ${result.zoneCharge > 0 ? `
+                        <div class="charge-item">
+                            <span>Zone Surcharge:</span>
+                            <span>$${result.zoneCharge.toFixed(2)}</span>
+                        </div>` : ''}
+                        ${result.expressCharge > 0 ? `
+                        <div class="charge-item">
+                            <span>Express Fee:</span>
+                            <span>$${result.expressCharge.toFixed(2)}</span>
+                        </div>` : ''}
+                        ${result.peakHourCharge > 0 ? `
+                        <div class="charge-item">
+                            <span>Peak Hour:</span>
+                            <span>$${result.peakHourCharge.toFixed(2)}</span>
+                        </div>` : ''}
+                        ${result.discount > 0 ? `
+                        <div class="charge-item discount">
+                            <span>Discount:</span>
+                            <span>-$${result.discount.toFixed(2)}</span>
+                        </div>
+                        <div class="charge-item" style="grid-column: 1 / -1;">
+                            <span>${result.discountReason}</span>
+                        </div>` : ''}
+                        <div class="charge-item total">
+                            <span>Total Delivery Charge:</span>
+                            <span>$${result.totalDeliveryCharge.toFixed(2)}</span>
+                        </div>
+                        <div class="charge-item" style="background: #34495e; color: white; font-weight: bold;">
+                            <span>Grand Total (Order + Delivery):</span>
+                            <span>$${result.grandTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateOrdersTable() {
+            const tbody = document.getElementById('ordersTableBody');
+
+            if (recentOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No deliveries yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = recentOrders.slice(0, 10).map(order => `
+                <tr>
+                    <td>${order.orderId}</td>
+                    <td>${order.customerId || 'N/A'}</td>
+                    <td>${order.distance} km</td>
+                    <td><span class="zone-badge zone-${order.zone}">${order.zone.replace('_', ' ')}</span></td>
+                    <td>$${order.totalDeliveryCharge.toFixed(2)}</td>
+                    <td><span class="status-badge status-PENDING">PENDING</span></td>
+                    <td>${new Date().toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+
+</html>

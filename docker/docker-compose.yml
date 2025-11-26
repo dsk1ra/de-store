@@ -99,6 +99,66 @@ services:
       timeout: 5s
       retries: 5
 
+  # PostgreSQL Database for Loyalty Service
+  postgres-loyalty:
+    image: postgres:15-alpine
+    container_name: destore-postgres-loyalty
+    environment:
+      POSTGRES_DB: loyalty_db
+      POSTGRES_USER: destore
+      POSTGRES_PASSWORD: destore123
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres-loyalty-data:/var/lib/postgresql/data
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U destore -d loyalty_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Analytics Service
+  postgres-analytics:
+    image: postgres:15-alpine
+    container_name: destore-postgres-analytics
+    environment:
+      POSTGRES_DB: analytics_db
+      POSTGRES_USER: destore
+      POSTGRES_PASSWORD: destore123
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres-analytics-data:/var/lib/postgresql/data
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U destore -d analytics_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database for Delivery Service
+  postgres-delivery:
+    image: postgres:15-alpine
+    container_name: destore-postgres-delivery
+    environment:
+      POSTGRES_DB: delivery_db
+      POSTGRES_USER: destore
+      POSTGRES_PASSWORD: destore123
+    ports:
+      - "5440:5432"
+    volumes:
+      - postgres-delivery-data:/var/lib/postgresql/data
+    networks:
+      - destore-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U destore -d delivery_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # RabbitMQ Message Broker
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
@@ -303,6 +363,87 @@ services:
       - destore-network
     restart: unless-stopped
 
+  # Loyalty Service
+  loyalty-service:
+    build:
+      context: ../loyalty-service
+      dockerfile: Dockerfile
+    container_name: destore-loyalty-service
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-loyalty:5432/loyalty_db
+      SPRING_DATASOURCE_USERNAME: destore
+      SPRING_DATASOURCE_PASSWORD: destore123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: destore
+      SPRING_RABBITMQ_PASSWORD: destore123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-loyalty:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+  # Analytics Service
+  analytics-service:
+    build:
+      context: ../analytics-service
+      dockerfile: Dockerfile
+    container_name: destore-analytics-service
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-analytics:5432/analytics_db
+      SPRING_DATASOURCE_USERNAME: destore
+      SPRING_DATASOURCE_PASSWORD: destore123
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: destore
+      SPRING_RABBITMQ_PASSWORD: destore123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-analytics:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - destore-network
+    restart: unless-stopped
+
+  # Delivery Service
+  delivery-service:
+    build:
+      context: ../delivery-service
+      dockerfile: Dockerfile
+    container_name: destore-delivery-service
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-delivery:5432/delivery_db
+      SPRING_DATASOURCE_USERNAME: destore
+      SPRING_DATASOURCE_PASSWORD: destore123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+    depends_on:
+      postgres-delivery:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - destore-network
+    restart: unless-stopped
+
   # API Gateway
   api-gateway:
     build:
@@ -333,6 +474,9 @@ volumes:
   postgres-inventory-data:
   postgres-finance-data:
   postgres-notification-data:
+  postgres-loyalty-data:
+  postgres-analytics-data:
+  postgres-delivery-data:
 
 
 networks:

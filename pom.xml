@@ -40,6 +40,9 @@
         <module>finance-service</module>
         <module>notification-service</module>
         <module>finance-approval-automation</module>
+        <module>loyalty-service</module>
+        <module>analytics-service</module>
+        <module>delivery-service</module>
         <module>api-gateway</module>
     </modules>
 
