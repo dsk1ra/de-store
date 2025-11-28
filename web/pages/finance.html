@@ -431,7 +431,7 @@
                 const response = await fetch('http://localhost:9000/api/finance-approval/config', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(configUpdate)
+                    body: JSON.stringify(config)
                 });
 
                 const data = await response.json();
