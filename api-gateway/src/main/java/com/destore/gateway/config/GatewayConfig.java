@@ -39,11 +39,17 @@ public class GatewayConfig {
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("http://finance-service:8084"))
                 
-                // Notification Service - JWT required
-                .route("notification-service", r -> r
-                        .path("/api/notifications/**")
+                // Loyalty Service - JWT required
+                .route("loyalty-service", r -> r
+                        .path("/api/loyalty/**")
                         .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
-                        .uri("http://notification-service:8085"))
+                        .uri("http://loyalty-service:8086"))
+                
+                // Analytics Service - JWT required
+                .route("analytics-service", r -> r
+                        .path("/api/analytics/**")
+                        .filters(f -> f.filter(jwtAuthenticationFilter.apply(new JwtAuthenticationFilter.Config())))
+                        .uri("http://analytics-service:8087"))
                 
                 // Enabling Simulator - No JWT required (external system)
                 .route("enabling-simulator", r -> r

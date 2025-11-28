@@ -154,6 +154,19 @@ public class PricingController {
         }
     }
 
+    @PostMapping("/delivery/calculate")
+    public ResponseEntity<ApiResponse<DeliveryChargeResponse>> calculateDeliveryCharge(
+            @RequestBody DeliveryChargeRequest request) {
+        try {
+            DeliveryChargeResponse response = pricingService.calculateDeliveryCharge(request);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (Exception e) {
+            log.error("Failed to calculate delivery charge", e);
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Pricing Service is healthy");

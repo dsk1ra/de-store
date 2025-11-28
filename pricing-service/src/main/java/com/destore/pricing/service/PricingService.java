@@ -3,6 +3,7 @@ package com.destore.pricing.service;
 import com.destore.pricing.dto.*;
 import com.destore.pricing.entity.Product;
 import com.destore.pricing.entity.Promotion;
+import com.destore.pricing.entity.PromotionType;
 import com.destore.pricing.repository.ProductRepository;
 import com.destore.pricing.repository.PromotionRepository;
 import lombok.RequiredArgsConstructor;
@@ -82,12 +83,8 @@ public class PricingService {
         if (query == null || query.trim().isEmpty()) {
             return getAllProducts();
         }
-
-        String searchTerm = query.toLowerCase();
-        return productRepository.findAll().stream()
-                .filter(p -> p.getProductName().toLowerCase().contains(searchTerm)
-                        || p.getProductCode().toLowerCase().contains(searchTerm))
-                .toList();
+        // Use database query instead of in-memory filtering for better performance
+        return productRepository.searchByNameOrCode(query.trim());
     }
 
     @Transactional
@@ -250,6 +247,7 @@ public class PricingService {
 
             case BOGO:
             case THREE_FOR_TWO:
+            case FREE_DELIVERY:
                 // These promotion types don't use discountValue
                 // It will be set to null during creation
                 break;
@@ -257,5 +255,67 @@ public class PricingService {
             default:
                 throw new IllegalArgumentException("Invalid promotion type: " + request.getPromotionType());
         }
+    }
+
+    /**
+     * Calculate delivery charges based on order value and distance.
+     * Free delivery is available for orders over £50 or when FREE_DELIVERY promotion applies.
+     */
+    public DeliveryChargeResponse calculateDeliveryCharge(DeliveryChargeRequest request) {
+        BigDecimal baseCharge = new BigDecimal("3.99");
+        BigDecimal distanceCharge = BigDecimal.ZERO;
+        BigDecimal expressCharge = BigDecimal.ZERO;
+        boolean freeDelivery = false;
+        String freeDeliveryReason = null;
+
+        // Check for free delivery threshold (orders over £50)
+        if (request.getOrderValue() != null && 
+            request.getOrderValue().compareTo(new BigDecimal("50.00")) >= 0) {
+            freeDelivery = true;
+            freeDeliveryReason = "Order value over £50";
+        }
+
+        // Check for active FREE_DELIVERY promotions
+        if (!freeDelivery) {
+            List<Promotion> freeDeliveryPromos = promotionRepository.findByPromotionTypeAndActive(
+                    PromotionType.FREE_DELIVERY, true);
+            LocalDate today = LocalDate.now();
+            for (Promotion promo : freeDeliveryPromos) {
+                if (!today.isBefore(promo.getStartDate()) && !today.isAfter(promo.getEndDate())) {
+                    freeDelivery = true;
+                    freeDeliveryReason = "Free delivery promotion: " + promo.getPromotionCode();
+                    break;
+                }
+            }
+        }
+
+        if (!freeDelivery) {
+            // Calculate distance charge (£0.50 per km after first 5km)
+            if (request.getDistanceKm() != null && request.getDistanceKm() > 5) {
+                double extraKm = request.getDistanceKm() - 5;
+                distanceCharge = new BigDecimal("0.50")
+                        .multiply(BigDecimal.valueOf(extraKm))
+                        .setScale(2, RoundingMode.HALF_UP);
+            }
+
+            // Express delivery surcharge
+            if (request.isExpressDelivery()) {
+                expressCharge = new BigDecimal("4.99");
+            }
+        }
+
+        BigDecimal totalCharge = freeDelivery ? BigDecimal.ZERO : 
+                baseCharge.add(distanceCharge).add(expressCharge);
+
+        log.info("Calculated delivery charge: {} (free: {})", totalCharge, freeDelivery);
+
+        return DeliveryChargeResponse.builder()
+                .baseCharge(freeDelivery ? BigDecimal.ZERO : baseCharge)
+                .distanceCharge(distanceCharge)
+                .expressCharge(expressCharge)
+                .totalCharge(totalCharge)
+                .freeDelivery(freeDelivery)
+                .freeDeliveryReason(freeDeliveryReason)
+                .build();
     }
 }

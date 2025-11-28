@@ -8,7 +8,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: ${SHOW_SQL:false}
 
 server:
   port: 8082
@@ -43,6 +43,6 @@ management:
 
 logging:
   level:
-    com.destore: DEBUG
+    com.destore: ${LOG_LEVEL:INFO}
   pattern:
     level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

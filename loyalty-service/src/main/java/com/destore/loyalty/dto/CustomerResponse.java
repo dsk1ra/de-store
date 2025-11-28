@@ -30,8 +30,13 @@ public class CustomerResponse {
     private Boolean active;
     private Boolean isRegularCustomer;
     private Integer discountPercentage;
+    private Integer pointsEarned; // Points earned from last purchase
     
     public static CustomerResponse fromEntity(Customer customer) {
+        return fromEntity(customer, null);
+    }
+    
+    public static CustomerResponse fromEntity(Customer customer, Integer pointsEarned) {
         return CustomerResponse.builder()
                 .id(customer.getId())
                 .customerId(customer.getCustomerId())
@@ -48,6 +53,7 @@ public class CustomerResponse {
                 .active(customer.getActive())
                 .isRegularCustomer(customer.isRegularCustomer())
                 .discountPercentage(customer.getDiscountPercentage())
+                .pointsEarned(pointsEarned)
                 .build();
     }
 }

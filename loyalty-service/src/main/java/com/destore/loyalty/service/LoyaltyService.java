@@ -84,7 +84,7 @@ public class LoyaltyService {
     }
     
     @Transactional
-    public Customer recordPurchase(PurchaseRequest request) {
+    public CustomerWithPoints recordPurchase(PurchaseRequest request) {
         Customer customer = getCustomer(request.getCustomerId());
         
         // Calculate points earned (10 points per dollar)
@@ -115,8 +115,13 @@ public class LoyaltyService {
         log.info("Recorded purchase for customer: {}, points earned: {}, new tier: {}", 
                 customer.getCustomerId(), pointsEarned, customer.getLoyaltyTier());
         
-        return updated;
+        return new CustomerWithPoints(updated, pointsEarned);
     }
+    
+    /**
+     * Helper class to return customer with points earned
+     */
+    public record CustomerWithPoints(Customer customer, int pointsEarned) {}
     
     @Transactional
     public Customer redeemPoints(String customerId, Integer points) {

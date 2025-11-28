@@ -37,6 +37,8 @@ public class InventoryService {
     private final InventoryTransactionRepository transactionRepository;
     private final ReservationRepository reservationRepository;
     private final RabbitTemplate rabbitTemplate;
+    private final StoreService storeService;
+    private final com.destore.inventory.client.ProductValidationClient productValidationClient;
 
     @Value("${rabbitmq.exchange.low-stock}")
     private String lowStockExchange;
@@ -46,8 +48,16 @@ public class InventoryService {
 
     @Transactional
     public Inventory createInventory(InventoryCreateRequest request) {
-        if (inventoryRepository.existsByProductCode(request.getProductCode())) {
-            throw new com.destore.exception.DuplicateResourceException("Inventory", request.getProductCode());
+        // Validate that the store exists before creating inventory
+        storeService.validateStoreExists(request.getStoreId());
+        
+        // Validate that the product exists in the pricing service before creating inventory
+        productValidationClient.validateProductExists(request.getProductCode());
+        
+        // Check if inventory already exists for this product in this specific store
+        if (inventoryRepository.existsByProductCodeAndStoreId(request.getProductCode(), request.getStoreId())) {
+            throw new com.destore.exception.DuplicateResourceException("Inventory", 
+                request.getProductCode() + " in store " + request.getStoreId());
         }
 
         Inventory inventory = Inventory.builder()
@@ -68,13 +78,46 @@ public class InventoryService {
         return saved;
     }
 
+    /**
+     * Get inventory by product code only (returns first match from any store)
+     * Use for backward compatibility with methods that don't have store context
+     */
     public Inventory getInventory(String productCode) {
-        return inventoryRepository.findByProductCode(productCode)
-                .orElseThrow(() -> new com.destore.exception.ResourceNotFoundException("Inventory", productCode));
+        List<Inventory> inventories = inventoryRepository.findAllByProductCode(productCode);
+        if (inventories.isEmpty()) {
+            throw new com.destore.exception.ResourceNotFoundException("Inventory", productCode);
+        }
+        return inventories.get(0);
     }
 
+    /**
+     * Get inventory by product code and store ID for specific store lookup
+     */
+    public Inventory getInventory(String productCode, String storeId) {
+        return inventoryRepository.findByProductCodeAndStoreId(productCode, storeId)
+                .orElseThrow(() -> new com.destore.exception.ResourceNotFoundException("Inventory", 
+                    productCode + " in store " + storeId));
+    }
+
+    /**
+     * Get all inventory, optionally filtered by store ID
+     */
     public List<Inventory> getAllInventory() {
         return inventoryRepository.findAll();
+    }
+
+    /**
+     * Get all inventory for a specific store
+     */
+    public List<Inventory> getAllInventoryByStore(String storeId) {
+        return inventoryRepository.findByStoreId(storeId);
+    }
+
+    /**
+     * Get all inventory for a specific product across all stores
+     */
+    public List<Inventory> getAllInventoryByProduct(String productCode) {
+        return inventoryRepository.findAllByProductCode(productCode);
     }
 
     @Transactional
@@ -410,33 +453,32 @@ public class InventoryService {
                 .build();
 
         rabbitTemplate.convertAndSend(lowStockExchange, lowStockRoutingKey, event);
+        
+        // Log the low stock alert (simulating notification to store manager)
+        log.warn("=== LOW STOCK ALERT ===");
+        log.warn("Product: {} is running low on stock", inventory.getProductCode());
+        log.warn("Store: {}", inventory.getStoreId());
+        log.warn("Current Stock: {}", inventory.getAvailableQuantity());
+        log.warn("Threshold: {}", inventory.getLowStockThreshold());
+        log.warn("Action Required: Reorder from central inventory");
+        log.warn("========================");
+        
         log.info("Published low stock event for product: {}", inventory.getProductCode());
     }
 
     public void checkLowStockProducts() {
-        List<Inventory> allInventory = inventoryRepository.findAll();
+        // Use database query to find low stock items instead of fetching all and filtering in memory
+        List<Inventory> lowStockItems = inventoryRepository.findAllLowStockItems();
 
-        for (Inventory inventory : allInventory) {
-            if (inventory.getAvailableQuantity() <= inventory.getLowStockThreshold()) {
-                publishLowStockEvent(inventory);
-            }
+        for (Inventory inventory : lowStockItems) {
+            publishLowStockEvent(inventory);
         }
 
-        log.info("Low stock check completed. Checked {} products", allInventory.size());
+        log.info("Low stock check completed. Found {} low stock products", lowStockItems.size());
     }
 
     public List<Inventory> getLowStockItems(String storeId) {
-        List<Inventory> allInventory = inventoryRepository.findAll();
-
-        return allInventory.stream()
-                .filter(inventory -> {
-                    // Filter by storeId if provided
-                    boolean storeMatch = (storeId == null || storeId.isEmpty() ||
-                            storeId.equals(inventory.getStoreId()));
-                    // Check if available quantity is at or below threshold
-                    boolean lowStock = inventory.getAvailableQuantity() <= inventory.getLowStockThreshold();
-                    return storeMatch && lowStock;
-                })
-                .toList();
+        // Use database query instead of fetching all inventory and filtering in memory
+        return inventoryRepository.findLowStockItems(storeId);
     }
 }

@@ -60,6 +60,6 @@ rabbitmq:
 
 logging:
   level:
-    com.destore: DEBUG
+    com.destore: ${LOG_LEVEL:INFO}
   pattern:
     level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

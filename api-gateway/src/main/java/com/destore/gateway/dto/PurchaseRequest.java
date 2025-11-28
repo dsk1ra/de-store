@@ -14,8 +14,19 @@ import java.util.List;
 @AllArgsConstructor
 public class PurchaseRequest {
     private String customerId;
+    private String customerName;
+    private String storeId;
     private List<PurchaseItem> items;
     private BigDecimal totalAmount;
+    
+    // Delivery options
+    private Boolean requiresDelivery;
+    private BigDecimal deliveryDistance;
+    private String deliveryAddress;
+    private Boolean isExpressDelivery;
+    
+    // Payment
+    private String paymentMethod;
     
     @Data
     @Builder
@@ -26,3 +37,4 @@ public class PurchaseRequest {
         private Integer quantity;
     }
 }
+

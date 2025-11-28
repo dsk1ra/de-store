@@ -34,13 +34,27 @@ public class InventoryController {
     }
 
     @GetMapping("/{productCode}")
-    public ResponseEntity<ApiResponse<Inventory>> getInventory(@PathVariable String productCode) {
+    public ResponseEntity<?> getInventory(
+            @PathVariable String productCode,
+            @RequestParam(required = false) String storeId) {
         try {
-            Inventory inventory = inventoryService.getInventory(productCode);
-            return ResponseEntity.ok(new ApiResponse<Inventory>(true, "Inventory retrieved successfully", inventory));
+            if (storeId != null && !storeId.isEmpty()) {
+                // Return single inventory for specific store
+                Inventory inventory = inventoryService.getInventory(productCode, storeId);
+                return ResponseEntity.ok(new ApiResponse<Inventory>(true, "Inventory retrieved successfully", inventory));
+            } else {
+                // Return all inventory for this product across all stores
+                List<Inventory> inventories = inventoryService.getAllInventoryByProduct(productCode);
+                if (inventories.isEmpty()) {
+                    return ResponseEntity.badRequest().body(new ApiResponse<List<Inventory>>(false, 
+                        "Inventory not found for product: " + productCode, null));
+                }
+                return ResponseEntity.ok(new ApiResponse<List<Inventory>>(true, 
+                    "Inventory retrieved for " + inventories.size() + " store(s)", inventories));
+            }
         } catch (Exception e) {
             log.error("Error retrieving inventory", e);
-            return ResponseEntity.badRequest().body(new ApiResponse<Inventory>(false, e.getMessage(), null));
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, e.getMessage(), null));
         }
     }
 
@@ -59,9 +73,15 @@ public class InventoryController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Inventory>>> getAllInventory() {
+    public ResponseEntity<ApiResponse<List<Inventory>>> getAllInventory(
+            @RequestParam(required = false) String storeId) {
         try {
-            List<Inventory> inventories = inventoryService.getAllInventory();
+            List<Inventory> inventories;
+            if (storeId != null) {
+                inventories = inventoryService.getAllInventoryByStore(storeId);
+            } else {
+                inventories = inventoryService.getAllInventory();
+            }
             return ResponseEntity
                     .ok(new ApiResponse<List<Inventory>>(true, "All inventory retrieved successfully", inventories));
         } catch (Exception e) {

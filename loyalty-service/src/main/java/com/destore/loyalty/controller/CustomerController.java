@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -119,8 +120,8 @@ public class CustomerController {
             @Valid @RequestBody PurchaseRequest request) {
         try {
             request.setCustomerId(customerId);
-            Customer customer = loyaltyService.recordPurchase(request);
-            CustomerResponse response = CustomerResponse.fromEntity(customer);
+            LoyaltyService.CustomerWithPoints result = loyaltyService.recordPurchase(request);
+            CustomerResponse response = CustomerResponse.fromEntity(result.customer(), result.pointsEarned());
             return ResponseEntity.ok(new ApiResponse<>(true, "Purchase recorded successfully", response));
         } catch (Exception e) {
             log.error("Error recording purchase", e);
@@ -157,10 +158,15 @@ public class CustomerController {
     }
     
     @GetMapping("/{customerId}/discount")
-    public ResponseEntity<ApiResponse<Integer>> getCustomerDiscount(@PathVariable String customerId) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getCustomerDiscount(@PathVariable String customerId) {
         try {
-            int discount = loyaltyService.calculateLoyaltyDiscount(customerId);
-            return ResponseEntity.ok(new ApiResponse<>(true, "Discount calculated", discount));
+            Customer customer = loyaltyService.getCustomer(customerId);
+            int discount = customer.getDiscountPercentage();
+            Map<String, Object> discountInfo = new java.util.HashMap<>();
+            discountInfo.put("discountPercentage", discount);
+            discountInfo.put("tier", customer.getLoyaltyTier().name());
+            discountInfo.put("loyaltyPoints", customer.getLoyaltyPoints());
+            return ResponseEntity.ok(new ApiResponse<>(true, "Discount calculated", discountInfo));
         } catch (Exception e) {
             log.error("Error calculating discount", e);
             return ResponseEntity.badRequest()

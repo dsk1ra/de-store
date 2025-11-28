@@ -10,7 +10,14 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "sales_transactions")
+@Table(name = "sales_transactions", indexes = {
+    @Index(name = "idx_sales_order_id", columnList = "orderId"),
+    @Index(name = "idx_sales_customer_id", columnList = "customerId"),
+    @Index(name = "idx_sales_store_id", columnList = "storeId"),
+    @Index(name = "idx_sales_transaction_date", columnList = "transactionDate"),
+    @Index(name = "idx_sales_customer_date", columnList = "customerId, transactionDate"),
+    @Index(name = "idx_sales_store_date", columnList = "storeId, transactionDate")
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -23,6 +30,9 @@ public class SalesTransaction {
     
     @Column(nullable = false, unique = true, length = 50)
     private String transactionId;
+    
+    @Column(nullable = false, unique = true, length = 50)
+    private String orderId;
     
     @Column(nullable = false, length = 50)
     private String customerId;

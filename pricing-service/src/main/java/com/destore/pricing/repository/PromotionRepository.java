@@ -1,6 +1,7 @@
 package com.destore.pricing.repository;
 
 import com.destore.pricing.entity.Promotion;
+import com.destore.pricing.entity.PromotionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +15,5 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
     List<Promotion> findByActiveTrue();
     List<Promotion> findByActiveTrueAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
         LocalDate start, LocalDate end);
+    List<Promotion> findByPromotionTypeAndActive(PromotionType promotionType, Boolean active);
 }

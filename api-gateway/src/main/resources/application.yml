@@ -20,6 +20,11 @@ spring:
             allow-credentials: false
             exposed-headers:
               - Authorization
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: destore
+    password: destore123
 
 server:
   port: 8080
@@ -28,7 +33,16 @@ jwt:
   secret: MySecretKeyForDEStoreApplicationMustBe256BitsOrLongerForHS256Algorithm
   expiration: 3600000
 
+# RabbitMQ Configuration
+rabbitmq:
+  exchange:
+    purchase: purchase.exchange
+  queue:
+    purchase: purchase.tracking.queue
+  routing-key:
+    purchase: purchase.tracking
+
 logging:
   level:
-    com.destore: DEBUG
-    org.springframework.cloud.gateway: DEBUG
+    com.destore: ${LOG_LEVEL:INFO}
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:INFO}

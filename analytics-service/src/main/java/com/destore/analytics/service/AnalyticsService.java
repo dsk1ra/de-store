@@ -34,10 +34,11 @@ public class AnalyticsService {
 
     @Transactional
     public void trackTransaction(TransactionRequest request) {
-        log.info("Tracking transaction: {}", request.getTransactionId());
+        log.info("Tracking transaction for order: {}", request.getOrderId());
         
         SalesTransaction transaction = SalesTransaction.builder()
-                .transactionId(request.getTransactionId())
+                .transactionId("TXN-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .orderId(request.getOrderId())
                 .customerId(request.getCustomerId())
                 .customerName(request.getCustomerName())
                 .storeId(request.getStoreId())
@@ -52,7 +53,7 @@ public class AnalyticsService {
                 .build();
         
         salesTransactionRepository.save(transaction);
-        log.info("Transaction tracked successfully: {}", request.getTransactionId());
+        log.info("Transaction tracked successfully for order: {}", request.getOrderId());
         
         // Trigger analytics updates
         updateCustomerAnalytics(request.getCustomerId());
@@ -101,6 +102,12 @@ public class AnalyticsService {
         List<StorePerformance> performances = storePerformanceRepository
                 .findByReportDate(reportDate);
         
+        // If no aggregated data, compute from raw transactions
+        if (performances.isEmpty()) {
+            log.info("No aggregated data found, computing from raw transactions");
+            return computeStorePerformanceFromTransactions(reportDate);
+        }
+        
         return performances.stream()
                 .map(this::convertToPerformanceMetrics)
                 .collect(Collectors.toList());
@@ -111,6 +118,12 @@ public class AnalyticsService {
         
         List<CustomerAnalytics> topCustomers = customerAnalyticsRepository
                 .findTopCustomers(reportDate);
+        
+        // If no aggregated data, compute from raw transactions
+        if (topCustomers.isEmpty()) {
+            log.info("No aggregated data found, computing from raw transactions");
+            return computeTopCustomersFromTransactions(reportDate, limit);
+        }
         
         return topCustomers.stream()
                 .limit(limit)
@@ -124,6 +137,12 @@ public class AnalyticsService {
         List<ProductSalesSummary> topProducts = productSalesSummaryRepository
                 .findTopSellingProducts(reportDate);
         
+        // If no aggregated data, compute from raw transactions
+        if (topProducts.isEmpty()) {
+            log.info("No aggregated data found, computing from raw transactions");
+            return computeTopProductsFromTransactions(reportDate, limit);
+        }
+        
         return topProducts.stream()
                 .limit(limit)
                 .map(this::convertToProductSalesResponse)
@@ -136,11 +155,9 @@ public class AnalyticsService {
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(23, 59, 59);
         
+        // Use database query to filter by customer ID instead of fetching all and filtering in memory
         List<SalesTransaction> customerTransactions = salesTransactionRepository
-                .findByTransactionDateBetween(startOfDay, endOfDay)
-                .stream()
-                .filter(t -> t.getCustomerId().equals(customerId))
-                .collect(Collectors.toList());
+                .findByCustomerIdAndTransactionDateBetween(customerId, startOfDay, endOfDay);
         
         if (!customerTransactions.isEmpty()) {
             CustomerAnalytics analytics = customerAnalyticsRepository
@@ -175,11 +192,9 @@ public class AnalyticsService {
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(23, 59, 59);
         
+        // Use database query to filter by store ID instead of fetching all and filtering in memory
         List<SalesTransaction> storeTransactions = salesTransactionRepository
-                .findByTransactionDateBetween(startOfDay, endOfDay)
-                .stream()
-                .filter(t -> t.getStoreId().equals(storeId))
-                .collect(Collectors.toList());
+                .findByStoreIdAndTransactionDateBetween(storeId, startOfDay, endOfDay);
         
         if (!storeTransactions.isEmpty()) {
             StorePerformance performance = storePerformanceRepository
@@ -257,5 +272,147 @@ public class AnalyticsService {
                 .averagePrice(summary.getAveragePrice())
                 .transactionCount(summary.getTransactionCount())
                 .build();
+    }
+
+    private List<PerformanceMetrics> computeStorePerformanceFromTransactions(LocalDate reportDate) {
+        LocalDateTime startOfDay = reportDate.atStartOfDay();
+        LocalDateTime endOfDay = reportDate.atTime(23, 59, 59);
+        
+        List<SalesTransaction> transactions = salesTransactionRepository
+                .findByTransactionDateBetween(startOfDay, endOfDay);
+        
+        // Group transactions by store
+        return transactions.stream()
+                .collect(Collectors.groupingBy(SalesTransaction::getStoreId))
+                .entrySet().stream()
+                .map(entry -> {
+                    String storeId = entry.getKey();
+                    List<SalesTransaction> storeTransactions = entry.getValue();
+                    
+                    BigDecimal totalRevenue = storeTransactions.stream()
+                            .map(SalesTransaction::getTotalAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    
+                    int uniqueCustomers = storeTransactions.stream()
+                            .map(SalesTransaction::getCustomerId)
+                            .collect(Collectors.toSet())
+                            .size();
+                    
+                    BigDecimal avgOrderValue = storeTransactions.isEmpty() ? BigDecimal.ZERO :
+                            totalRevenue.divide(BigDecimal.valueOf(storeTransactions.size()), 2, RoundingMode.HALF_UP);
+                    
+                    return PerformanceMetrics.builder()
+                            .storeId(storeId)
+                            .period(reportDate.toString())
+                            .totalRevenue(totalRevenue)
+                            .totalTransactions(storeTransactions.size())
+                            .uniqueCustomers(uniqueCustomers)
+                            .averageOrderValue(avgOrderValue)
+                            .status("Active")
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<CustomerAnalyticsResponse> computeTopCustomersFromTransactions(LocalDate reportDate, int limit) {
+        LocalDateTime startOfDay = reportDate.atStartOfDay();
+        LocalDateTime endOfDay = reportDate.atTime(23, 59, 59);
+        
+        List<SalesTransaction> transactions = salesTransactionRepository
+                .findByTransactionDateBetween(startOfDay, endOfDay);
+        
+        // Group transactions by customer and calculate aggregates
+        return transactions.stream()
+                .collect(Collectors.groupingBy(SalesTransaction::getCustomerId))
+                .entrySet().stream()
+                .map(entry -> {
+                    String customerId = entry.getKey();
+                    List<SalesTransaction> customerTransactions = entry.getValue();
+                    
+                    BigDecimal totalSpent = customerTransactions.stream()
+                            .map(SalesTransaction::getTotalAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    
+                    BigDecimal avgOrderValue = totalSpent.divide(
+                            BigDecimal.valueOf(customerTransactions.size()), 2, RoundingMode.HALF_UP);
+                    
+                    return CustomerAnalyticsResponse.builder()
+                            .customerId(customerId)
+                            .customerName(customerTransactions.get(0).getCustomerName())
+                            .totalPurchases(customerTransactions.size())
+                            .totalSpent(totalSpent)
+                            .averageOrderValue(avgOrderValue)
+                            .build();
+                })
+                .sorted((c1, c2) -> c2.getTotalSpent().compareTo(c1.getTotalSpent()))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    private List<ProductSalesResponse> computeTopProductsFromTransactions(LocalDate reportDate, int limit) {
+        LocalDateTime startOfDay = reportDate.atStartOfDay();
+        LocalDateTime endOfDay = reportDate.atTime(23, 59, 59);
+        
+        List<SalesTransaction> transactions = salesTransactionRepository
+                .findByTransactionDateBetween(startOfDay, endOfDay);
+        
+        // Parse items and aggregate by product using regex
+        java.util.Map<String, ProductAggregation> productMap = new java.util.HashMap<>();
+        
+        for (SalesTransaction transaction : transactions) {
+            if (transaction.getItems() != null && !transaction.getItems().trim().isEmpty()) {
+                try {
+                    String items = transaction.getItems();
+                    // Use regex to extract product information
+                    java.util.regex.Pattern productPattern = java.util.regex.Pattern.compile(
+                            "\"productCode\":\\s*\"([^\"]+)\".*?\"productName\":\\s*\"([^\"]+)\".*?\"quantity\":\\s*(\\d+).*?\"totalPrice\":\\s*([\\d.]+)"
+                    );
+                    java.util.regex.Matcher matcher = productPattern.matcher(items);
+                    
+                    while (matcher.find()) {
+                        String productCode = matcher.group(1);
+                        String productName = matcher.group(2);
+                        int quantity = Integer.parseInt(matcher.group(3));
+                        BigDecimal totalPrice = new BigDecimal(matcher.group(4));
+                        
+                        ProductAggregation agg = productMap.getOrDefault(productCode, new ProductAggregation());
+                        if (agg.productCode == null) {
+                            agg.productCode = productCode;
+                            agg.productName = productName;
+                        }
+                        agg.quantity += quantity;
+                        agg.revenue = agg.revenue.add(totalPrice);
+                        agg.transactionCount++;
+                        productMap.put(productCode, agg);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to parse items JSON: {}", e.getMessage());
+                }
+            }
+        }
+        
+        return productMap.values().stream()
+                .map(agg -> ProductSalesResponse.builder()
+                        .productCode(agg.productCode)
+                        .productName(agg.productName)
+                        .reportDate(reportDate)
+                        .quantitySold(agg.quantity)
+                        .totalRevenue(agg.revenue)
+                        .averagePrice(agg.quantity > 0 ? 
+                                agg.revenue.divide(BigDecimal.valueOf(agg.quantity), 2, RoundingMode.HALF_UP) : 
+                                BigDecimal.ZERO)
+                        .transactionCount(agg.transactionCount)
+                        .build())
+                .sorted((p1, p2) -> p2.getTotalRevenue().compareTo(p1.getTotalRevenue()))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    private static class ProductAggregation {
+        String productCode;
+        String productName;
+        int quantity = 0;
+        BigDecimal revenue = BigDecimal.ZERO;
+        int transactionCount = 0;
     }
 }

@@ -5,6 +5,7 @@ import com.destore.analytics.service.AnalyticsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -17,12 +18,16 @@ public class PurchaseEventListener {
     private final ObjectMapper objectMapper;
 
     @RabbitListener(queues = "${rabbitmq.queue.purchase}")
-    public void handlePurchaseEvent(String message) {
-        log.info("Received purchase event: {}", message);
+    public void handlePurchaseEvent(Message message) {
         try {
-            TransactionRequest transaction = objectMapper.readValue(message, TransactionRequest.class);
+            String json = new String(message.getBody());
+            log.info("Received purchase event: {}", json);
+            
+            TransactionRequest transaction = objectMapper.readValue(json, TransactionRequest.class);
+            log.info("Parsed purchase event for order: {}", transaction.getOrderId());
+            
             analyticsService.trackTransaction(transaction);
-            log.info("Successfully processed purchase event for transaction: {}", transaction.getTransactionId());
+            log.info("Successfully processed purchase event for order: {}", transaction.getOrderId());
         } catch (Exception e) {
             log.error("Error processing purchase event: {}", e.getMessage(), e);
         }

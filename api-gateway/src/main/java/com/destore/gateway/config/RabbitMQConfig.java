@@ -1,10 +1,9 @@
-package com.destore.analytics.config;
+package com.destore.gateway.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
-import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -16,13 +15,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    @Value("${rabbitmq.exchange.purchase}")
+    @Value("${rabbitmq.exchange.purchase:purchase.exchange}")
     private String purchaseExchange;
 
-    @Value("${rabbitmq.queue.purchase}")
+    @Value("${rabbitmq.queue.purchase:purchase.tracking.queue}")
     private String purchaseQueue;
 
-    @Value("${rabbitmq.routing-key.purchase}")
+    @Value("${rabbitmq.routing-key.purchase:purchase.tracking}")
     private String purchaseRoutingKey;
 
     @Bean
@@ -53,14 +52,5 @@ public class RabbitMQConfig {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter());
         return rabbitTemplate;
-    }
-
-    @Bean
-    public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(ConnectionFactory connectionFactory) {
-        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-        factory.setConnectionFactory(connectionFactory);
-        // Don't set message converter - we'll handle raw messages manually to support
-        // messages from different sources that may not have proper type headers
-        return factory;
     }
 }

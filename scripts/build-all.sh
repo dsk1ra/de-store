@@ -20,11 +20,11 @@ build_service() {
     echo -e "${YELLOW}Building $service...${NC}"
     cd "$service" || exit
     if mvn clean package -DskipTests; then
-        echo -e "${GREEN}✓ $service built successfully${NC}"
+        echo -e "${GREEN}[SUCCESS] $service built successfully${NC}"
         cd ..
         return 0
     else
-        echo -e "${RED}✗ Failed to build $service${NC}"
+        echo -e "${RED}[ERROR] Failed to build $service${NC}"
         cd ..
         return 1
     fi
@@ -40,10 +40,10 @@ echo ""
 
 # Build parent POM
 echo -e "${YELLOW}Building parent POM...${NC}"
-if mvn clean install -DskipTests -N; then
-    echo -e "${GREEN}✓ Parent POM installed${NC}"
+if mvn clean install -N -DskipTests; then
+    echo -e "${GREEN}[SUCCESS] Parent POM installed${NC}"
 else
-    echo -e "${RED}✗ Failed to build parent POM${NC}"
+    echo -e "${RED}[ERROR] Failed to build parent POM${NC}"
     exit 1
 fi
 
@@ -69,11 +69,9 @@ services=(
     "pricing-service"
     "inventory-service"
     "finance-service"
-    "notification-service"
     "finance-approval-automation"
     "loyalty-service"
     "analytics-service"
-    "delivery-service"
     "api-gateway"
 )
 
@@ -93,7 +91,7 @@ echo "Build Summary"
 echo "========================================"
 
 if [ ${#failed_services[@]} -eq 0 ]; then
-    echo -e "${GREEN}✓ All services built successfully!${NC}"
+    echo -e "${GREEN}[SUCCESS] All services built successfully!${NC}"
     echo ""
     echo "Next steps:"
     echo "1. Start services: docker-compose up -d"
@@ -102,7 +100,7 @@ if [ ${#failed_services[@]} -eq 0 ]; then
     echo ""
     exit 0
 else
-    echo -e "${RED}✗ The following services failed to build:${NC}"
+    echo -e "${RED}[ERROR] The following services failed to build:${NC}"
     for service in "${failed_services[@]}"; do
         echo "  - $service"
     done

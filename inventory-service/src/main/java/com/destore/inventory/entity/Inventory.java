@@ -9,7 +9,17 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "inventory")
+@Table(name = "inventory", 
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_inventory_product_store", columnNames = {"productCode", "storeId"})
+    },
+    indexes = {
+        @Index(name = "idx_inventory_product_code", columnList = "productCode"),
+        @Index(name = "idx_inventory_store_id", columnList = "storeId"),
+        @Index(name = "idx_inventory_product_store", columnList = "productCode, storeId"),
+        @Index(name = "idx_inventory_low_stock", columnList = "quantity, reservedQuantity, lowStockThreshold")
+    }
+)
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,7 +30,7 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String productCode;
     
     @Builder.Default

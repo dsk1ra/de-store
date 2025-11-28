@@ -9,11 +9,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        format_sql: ${FORMAT_SQL:false}
 
 server:
   port: 8081
@@ -52,7 +52,7 @@ jwt:
 
 logging:
   level:
-    com.destore: DEBUG
-    org.springframework.security: DEBUG
+    com.destore: ${LOG_LEVEL:INFO}
+    org.springframework.security: ${SECURITY_LOG_LEVEL:INFO}
   pattern:
     level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'

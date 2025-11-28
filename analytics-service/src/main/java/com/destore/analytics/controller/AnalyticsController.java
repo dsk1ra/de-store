@@ -17,13 +17,14 @@ import java.util.List;
 @RequestMapping("/analytics")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "*")
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
 
     @PostMapping("/transactions")
     public ResponseEntity<String> trackTransaction(@Valid @RequestBody TransactionRequest request) {
-        log.info("Received transaction tracking request: {}", request.getTransactionId());
+        log.info("Received transaction tracking request for order: {}", request.getOrderId());
         try {
             analyticsService.trackTransaction(request);
             return ResponseEntity.status(HttpStatus.CREATED)

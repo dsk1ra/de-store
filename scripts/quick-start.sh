@@ -81,10 +81,11 @@ echo "=========================================="
 
 services=(
     "http://localhost:8081/auth/health|Authentication Service"
-    "http://localhost:8082/pricing/health|Pricing Service"
-    "http://localhost:8083/inventory/health|Inventory Service"
-    "http://localhost:8084/finance/health|Finance Service"
-    "http://localhost:8085/notification/health|Notification Service"
+    "http://localhost:8082/api/pricing/health|Pricing Service"
+    "http://localhost:8083/api/inventory/health|Inventory Service"
+    "http://localhost:8084/api/finance/health|Finance Service"
+    "http://localhost:8086/api/loyalty/promotions/health|Loyalty Service"
+    "http://localhost:8087/analytics/health|Analytics Service"
     "http://localhost:9000/api/finance-approval/health|Finance Approval Automation"
 )
 
@@ -105,7 +106,7 @@ echo ""
 
 if [ "$all_healthy" = true ]; then
     echo "=========================================="
-    echo "🎉 All services are healthy!"
+    echo "All services are healthy!"
     echo "=========================================="
     echo ""
     echo "Service URLs:"
@@ -114,7 +115,8 @@ if [ "$all_healthy" = true ]; then
     echo "  - Pricing Service: http://localhost:8082"
     echo "  - Inventory Service: http://localhost:8083"
     echo "  - Finance Service: http://localhost:8084"
-    echo "  - Notification Service: http://localhost:8085"
+    echo "  - Loyalty Service: http://localhost:8086"
+    echo "  - Analytics Service: http://localhost:8087"
     echo "  - External Finance Service: http://localhost:9000"
     echo "  - RabbitMQ Management: http://localhost:15672"
     echo ""
