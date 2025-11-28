@@ -1,4 +1,4 @@
-package com.destore.financeapproval.dto;
+package com.destore.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,16 +6,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
+/**
+ * Request DTO for the external "Enabling" finance approval system.
+ * Used for communication between finance-service and finance-approval-automation.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PendingApprovalMessage {
-    private String requestId;
+public class EnablingRequest {
     private String customerId;
     private BigDecimal amount;
-    private String purpose;
-    private LocalDateTime timestamp;
+    private String requestId;
 }

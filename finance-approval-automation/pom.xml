@@ -17,6 +17,12 @@
     <name>DE-Store Finance Approval Automation</name>
 
     <dependencies>
+        <!-- Common module for shared DTOs -->
+        <dependency>
+            <groupId>com.destore</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

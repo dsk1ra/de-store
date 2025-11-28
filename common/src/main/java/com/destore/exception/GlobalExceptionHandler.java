@@ -42,10 +42,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InsufficientStockException.class)
     public ResponseEntity<ApiResponse<?>> handleInsufficientStock(InsufficientStockException ex) {
-        log.error("Insufficient stock: {}", ex.getMessage());
-        Map<String, Object> details = new HashMap<>();
-        details.put("available", ex.getAvailable());
-        details.put("requested", ex.getRequested());
+        log.error("Insufficient stock: {} (available: {}, requested: {})", 
+                ex.getMessage(), ex.getAvailable(), ex.getRequested());
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

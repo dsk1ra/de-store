@@ -1,7 +1,7 @@
 package com.destore.finance.client;
 
-import com.destore.finance.dto.EnablingRequest;
-import com.destore.finance.dto.EnablingResponse;
+import com.destore.dto.EnablingRequest;
+import com.destore.dto.EnablingResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

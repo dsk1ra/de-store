@@ -1,4 +1,4 @@
-package com.destore.finance.dto;
+package com.destore.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Message DTO for pending finance approval requests.
+ * Used for communication between finance-service and finance-approval-automation via RabbitMQ.
+ */
 @Data
 @Builder
 @NoArgsConstructor

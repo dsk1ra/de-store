@@ -37,8 +37,6 @@ public class OrchestrationService {
     private static final String FINANCE_SERVICE_URL = "http://localhost:8084";
     private static final String PRICING_SERVICE_URL = "http://localhost:8082";
     private static final String LOYALTY_SERVICE_URL = "http://localhost:8086";
-    private static final String DELIVERY_SERVICE_URL = "http://localhost:8088";
-    private static final String INVENTORY_STORE_URL = "http://localhost:8083";
     
     public PurchaseResponse processPurchase(PurchaseRequest request, String authToken) {
         String orderId = UUID.randomUUID().toString();
@@ -291,7 +289,7 @@ public class OrchestrationService {
      */
     private boolean validateStoreExists(String storeId, String authToken) {
         try {
-            String url = INVENTORY_STORE_URL + "/api/stores/" + storeId + "/exists";
+            String url = INVENTORY_SERVICE_URL + "/api/stores/" + storeId + "/exists";
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", authToken);
             
@@ -404,7 +402,8 @@ public class OrchestrationService {
                                                     String storeId, BigDecimal orderValue, BigDecimal distance,
                                                     String deliveryAddress, boolean isExpress, String authToken) {
         try {
-            String url = DELIVERY_SERVICE_URL + "/api/delivery/calculate";
+            // Use pricing-service for delivery calculation
+            String url = PRICING_SERVICE_URL + "/api/pricing/delivery/calculate";
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", authToken);
             headers.set("Content-Type", "application/json");

@@ -1,7 +1,7 @@
 package com.destore.finance.client;
 
-import com.destore.finance.dto.EnablingRequest;
-import com.destore.finance.dto.EnablingResponse;
+import com.destore.dto.EnablingRequest;
+import com.destore.dto.EnablingResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

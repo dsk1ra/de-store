@@ -1,10 +1,10 @@
 package com.destore.financeapproval.service;
 
+import com.destore.dto.ApprovalDecisionMessage;
+import com.destore.dto.EnablingRequest;
+import com.destore.dto.EnablingResponse;
+import com.destore.dto.PendingApprovalMessage;
 import com.destore.financeapproval.config.ConfigurationPersistence;
-import com.destore.financeapproval.dto.ApprovalRequest;
-import com.destore.financeapproval.dto.ApprovalResponse;
-import com.destore.financeapproval.dto.PendingApprovalMessage;
-import com.destore.financeapproval.dto.ApprovalDecisionMessage;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
@@ -80,14 +80,14 @@ public class FinanceApprovalAutomationService {
         configurationPersistence.saveConfiguration(approvalThreshold, processingDelayMs, autoApproveEnabled);
     }
     
-    public ApprovalResponse processApproval(ApprovalRequest request) {
+    public EnablingResponse processApproval(EnablingRequest request) {
         log.info("Processing approval request for customer: {}, amount: {}", 
                 request.getCustomerId(), request.getAmount());
         
         // Check if auto-approve is disabled
         if (!autoApproveEnabled) {
             log.info("Auto-approve is disabled - rejecting request {}", request.getRequestId());
-            return ApprovalResponse.builder()
+            return EnablingResponse.builder()
                     .requestId(request.getRequestId())
                     .approved(false)
                     .approvedAmount(BigDecimal.ZERO)
@@ -115,7 +115,7 @@ public class FinanceApprovalAutomationService {
         log.info("Approval decision for request {}: {}", request.getRequestId(), 
                 approved ? "APPROVED" : "REJECTED");
         
-        return ApprovalResponse.builder()
+        return EnablingResponse.builder()
                 .requestId(request.getRequestId())
                 .approved(approved)
                 .approvedAmount(approved ? request.getAmount() : BigDecimal.ZERO)

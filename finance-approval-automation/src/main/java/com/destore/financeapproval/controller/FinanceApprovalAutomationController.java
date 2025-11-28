@@ -1,7 +1,7 @@
 package com.destore.financeapproval.controller;
 
-import com.destore.financeapproval.dto.ApprovalRequest;
-import com.destore.financeapproval.dto.ApprovalResponse;
+import com.destore.dto.EnablingRequest;
+import com.destore.dto.EnablingResponse;
 import com.destore.financeapproval.service.FinanceApprovalAutomationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +28,9 @@ public class FinanceApprovalAutomationController {
     private String financeServiceUrl;
     
     @PostMapping("/approve")
-    public ResponseEntity<ApprovalResponse> approveRequest(@RequestBody ApprovalRequest request) {
+    public ResponseEntity<EnablingResponse> approveRequest(@RequestBody EnablingRequest request) {
         log.info("Received approval request: {}", request.getRequestId());
-        ApprovalResponse response = financeApprovalAutomationService.processApproval(request);
+        EnablingResponse response = financeApprovalAutomationService.processApproval(request);
         return ResponseEntity.ok(response);
     }
     

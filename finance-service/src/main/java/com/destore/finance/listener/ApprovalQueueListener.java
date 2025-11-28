@@ -1,6 +1,6 @@
 package com.destore.finance.listener;
 
-import com.destore.finance.dto.ApprovalDecisionMessage;
+import com.destore.dto.ApprovalDecisionMessage;
 import com.destore.finance.service.FinanceIntegrationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

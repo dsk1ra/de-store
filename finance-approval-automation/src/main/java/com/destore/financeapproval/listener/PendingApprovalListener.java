@@ -1,6 +1,6 @@
 package com.destore.financeapproval.listener;
 
-import com.destore.financeapproval.dto.PendingApprovalMessage;
+import com.destore.dto.PendingApprovalMessage;
 import com.destore.financeapproval.service.FinanceApprovalAutomationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

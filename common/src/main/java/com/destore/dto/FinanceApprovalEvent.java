@@ -8,14 +8,16 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Event DTO for finance approval notifications.
+ * Published to RabbitMQ when a finance request is approved or rejected.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FinanceApprovalEvent {
-    private String eventType;
     private String requestId;
-    private String customerName;
     private String customerEmail;
     private BigDecimal purchaseAmount;
     private String approvalCode;
